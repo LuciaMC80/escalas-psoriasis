@@ -1,0 +1,20 @@
+ESCALAS DE PSORIASIS - APP INSTALABLE (PWA)
+
+1) PUBLICAR (una sola vez, gratis)
+   Opcion A - Netlify Drop (la mas rapida):
+     - Entra en https://app.netlify.com/drop (crea una cuenta gratuita).
+     - Arrastra la carpeta "app-movil" entera a la pagina.
+     - Te dara una direccion https://...netlify.app  (puedes cambiar el nombre en "Site settings").
+   Opcion B - GitHub Pages:
+     - Crea un repositorio publico, sube el contenido de "app-movil" y activa
+       Settings > Pages > Branch: main / root.
+
+2) INSTALAR EN EL MOVIL
+   Android (Chrome): abre la direccion > menu (tres puntos) > "Instalar aplicacion".
+   iPhone (Safari):  abre la direccion > boton Compartir > "Anadir a pantalla de inicio".
+
+3) USO
+   - Tras la primera apertura funciona sin conexion.
+   - Los datos se guardan solo en el propio dispositivo.
+   - Para actualizar la app, sube de nuevo la carpeta y cambia "psoriasis-v1" por
+     "psoriasis-v2" en sw.js.

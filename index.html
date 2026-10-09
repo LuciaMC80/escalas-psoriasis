@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escalas de Psoriasis</title>
+<meta name="description" content="Calculadora de escalas de psoriasis: BSA, PASI, PGA, DLQI, EVA del picor, NAPSI, PSSI, PPASI, GPSI y s-PGA-G.">
+<meta name="theme-color" content="#b3384d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Psoriasis">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: cabecera con datos del paciente; columna de navegación por escalas (generales / localizaciones especiales) con puntuaciones vivas; panel de trabajo a la derecha. */
+:root{
+  --bg:#eef2f3; --surface:#ffffff; --surface-2:#f6f8f9; --ink:#15242a; --muted:#5a6b71; --line:#d5dee1;
+  --accent:#b3384d; --accent-soft:#f6e3e6; --accent-ink:#ffffff;
+  --teal:#1d6670; --teal-soft:#e0eff0;
+  --body:#dfe6e8; --lesion:#c2415a;
+  --sev0:#6f7f85; --sev1:#2f7d52; --sev2:#a56a12; --sev3:#b3384d; --sev4:#7d1d33;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f171a; --surface:#162126; --surface-2:#1b282e; --ink:#e3ecee; --muted:#93a6ac; --line:#2a3b42;
+  --accent:#ec7085; --accent-soft:#3a1f27; --accent-ink:#1a0a0e;
+  --teal:#6cbdc5; --teal-soft:#183338;
+  --body:#2b3a40; --lesion:#e4637b;
+  --sev0:#8b9ca2; --sev1:#5fc68d; --sev2:#e2a94e; --sev3:#ec7085; --sev4:#ff9aa9;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0f171a; --surface:#162126; --surface-2:#1b282e; --ink:#e3ecee; --muted:#93a6ac; --line:#2a3b42;
+  --accent:#ec7085; --accent-soft:#3a1f27; --accent-ink:#1a0a0e;
+  --teal:#6cbdc5; --teal-soft:#183338;
+  --body:#2b3a40; --lesion:#e4637b;
+  --sev0:#8b9ca2; --sev1:#5fc68d; --sev2:#e2a94e; --sev3:#ec7085; --sev4:#ff9aa9;
+  color-scheme:dark; }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:0 40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:1.45rem;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.5rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.eyebrow{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* Header */
+.top{max-width:1280px;margin:0 auto;padding-block:18px 14px;display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:12px;align-items:center}
+.brand svg{flex:none}
+.brand p{color:var(--muted);font-size:.9rem}
+.patient{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.field{min-width:0}
+.field input,.field select{max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;color:var(--ink);min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-weight:600}
+.btn:hover{border-color:var(--teal)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:var(--surface)}
+.btn.danger{border-color:var(--accent);color:var(--accent)}
+.banner{max-width:1280px;margin:12px auto 0;background:var(--teal-soft);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.9rem;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+/* Shell */
+.shell{max-width:1280px;margin:18px auto 0;display:grid;grid-template-columns:236px minmax(0,1fr);gap:24px;align-items:start}
+nav.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:16px}
+.navgroup{display:flex;flex-direction:column;gap:4px}
+.navgroup .eyebrow{padding:0 10px 4px}
+.navbtn{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:1px solid transparent;background:none;border-radius:8px;padding:8px 10px;width:100%}
+.navbtn:hover{background:var(--surface)}
+.navbtn[aria-current="true"]{background:var(--surface);border-color:var(--line);box-shadow:inset 3px 0 0 var(--accent)}
+.navbtn .nm{font-weight:600}
+.navbtn .nm small{display:block;font-weight:400;color:var(--muted);font-size:.78rem;line-height:1.2}
+.chip{font-family:var(--f-mono);font-size:.78rem;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap;border:1px solid var(--line)}
+.chip[data-sev="1"]{color:var(--sev1);border-color:currentColor}
+.chip[data-sev="2"]{color:var(--sev2);border-color:currentColor}
+.chip[data-sev="3"]{color:var(--sev3);border-color:currentColor}
+.chip[data-sev="4"]{color:var(--sev4);border-color:currentColor;font-weight:700}
+
+main{min-width:0}
+section.panel{display:flex;flex-direction:column;gap:18px}
+section.panel[hidden]{display:none}
+.phead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 20px;align-items:flex-end}
+.phead .intro{max-width:66ch;display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 300px}
+.phead .intro p{color:var(--muted)}
+.scorebox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;min-width:190px;display:flex;flex-direction:column;gap:2px}
+.scorebox .val{font-family:var(--f-mono);font-size:2.1rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.scorebox .max{font-size:.9rem;color:var(--muted);font-weight:500}
+.sevpill{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;font-weight:700;font-size:.85rem;padding:2px 10px;border-radius:999px;border:1.5px solid currentColor;color:var(--sev0)}
+.sevpill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.sevpill[data-sev="1"]{color:var(--sev1)} .sevpill[data-sev="2"]{color:var(--sev2)} .sevpill[data-sev="3"]{color:var(--sev3)} .sevpill[data-sev="4"]{color:var(--sev4)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.note{font-size:.86rem;color:var(--muted);max-width:75ch}
+.formula{max-width:100%;font-family:var(--f-mono);font-size:.85rem;background:var(--surface-2);border:1px dashed var(--line);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+
+/* Segmented controls */
+.paramrow{display:flex;flex-direction:column;gap:6px}
+.paramrow .lbl{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.92rem}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{border:1px solid var(--line);background:var(--surface-2);border-radius:7px;padding:5px 9px;font-size:.84rem;font-variant-numeric:tabular-nums;min-width:38px}
+.seg button small{display:block;font-size:.68rem;color:var(--muted);line-height:1.1}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.seg button[aria-pressed="true"] small{color:var(--surface);opacity:.8}
+
+/* Image choices */
+.imgchoice{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.imgchoice.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.imgchoice button{border:1.5px solid var(--line);background:var(--surface-2);border-radius:8px;padding:3px 3px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.imgchoice button svg{width:100%;height:auto;display:block;border-radius:5px}
+.imgchoice button span{font-size:.72rem;line-height:1.15;text-align:center}
+.imgchoice button b{font-family:var(--f-mono);font-size:.8rem}
+.imgchoice button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent)}
+
+/* Level cards (PGA-type scales) */
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.level{border:1.5px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.level svg{width:100%;height:auto;display:block;border-radius:6px}
+.level .lt{display:flex;gap:8px;align-items:baseline}
+.level .lt b{font-family:var(--f-mono);font-size:1.1rem}
+.level .lt span{font-weight:700}
+.level p{font-size:.8rem;color:var(--muted);line-height:1.35}
+.level[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);background:var(--accent-soft)}
+.dynlist{display:flex;flex-direction:column;gap:4px}
+.dynlist button{display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 10px}
+.dynlist button b{font-family:var(--f-mono);width:2.6em}
+.dynlist button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+/* PASI regions */
+.regions{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.region .preview{display:flex;gap:12px;align-items:center}
+[data-prev] svg{width:120px;display:block;border-radius:8px}
+.region .preview svg{width:150px;flex:none}
+.region .sub{font-family:var(--f-mono);font-size:1.4rem;font-weight:700}
+
+/* BSA */
+.bsa-wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px}
+.bodymap svg{width:100%;height:auto;max-width:460px;display:block;margin:0 auto}
+.bm-r{fill:var(--body);stroke:var(--line);stroke-width:1;cursor:pointer;transition:fill .2s}
+.bm-r:hover{stroke:var(--teal);stroke-width:2}
+.bm-lbl{fill:var(--muted);font-size:9px;font-family:var(--f-body);font-weight:700;letter-spacing:.06em}
+.steplist{display:flex;flex-direction:column;gap:6px}
+.steprow{display:grid;grid-template-columns:minmax(0,1fr) auto 64px;gap:10px;align-items:center;padding:6px 8px;border-radius:8px}
+.steprow.flash{background:var(--teal-soft)}
+.steprow .rn{font-weight:600;font-size:.92rem}
+.steprow .rn small{display:block;font-weight:400;color:var(--muted);font-size:.76rem}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stepper button{border:0;background:var(--surface-2);width:30px;height:30px;font-weight:700}
+.stepper input{width:52px;border:0;text-align:center;font-family:var(--f-mono);background:var(--surface);color:var(--ink);height:30px}
+.bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--lesion)}
+
+/* NAPSI */
+.nails{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.nail{border:1px solid var(--line);border-radius:8px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface-2);min-width:0}
+.nail svg{width:52px;height:auto}
+.nail .nn{font-size:.74rem;font-weight:700;text-align:center;line-height:1.15}
+.nail .mini{display:flex;flex-direction:column;gap:3px;width:100%}
+.nail .mini .ml{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.nail .seg button{min-width:0;flex:1;padding:2px 0;font-size:.74rem}
+.nail .seg{flex-wrap:nowrap;gap:2px}
+.nail .ns{font-family:var(--f-mono);font-size:.8rem}
+.signs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sign{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px;background:var(--surface)}
+.sign svg{width:40px;flex:none}
+.sign > div{min-width:0}
+.sign b{display:block;font-size:.85rem;overflow-wrap:anywhere}
+.sign span{font-size:.75rem;color:var(--muted);line-height:1.2;display:block}
+
+/* DLQI */
+.qlist{display:flex;flex-direction:column;gap:10px;counter-reset:q}
+.q{display:grid;grid-template-columns:2em minmax(0,1fr);gap:4px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.q .qn{font-family:var(--f-mono);font-weight:700;color:var(--accent);grid-row:span 2}
+.q .qt{font-size:.95rem}
+.q .seg button{font-size:.8rem}
+.q.unanswered{border-style:dashed}
+
+/* Itch */
+.itch-val{font-family:var(--f-mono);font-size:3.2rem;font-weight:700;line-height:1}
+.itch-range{width:100%;accent-color:var(--accent)}
+.itch-scale{height:14px;border-radius:7px;background:linear-gradient(90deg,#4f9d6c 0%,#c9b13b 35%,#d77a2f 60%,#c2364d 80%,#7d1d33 100%)}
+.ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.nrs{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:4px}
+.nrs button{border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:6px 0;font-family:var(--f-mono);font-size:.9rem}
+.nrs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* Summary */
+.sumtable{width:100%;border-collapse:collapse;font-size:.92rem}
+.sumtable th,.sumtable td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.sumtable th{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.sumtable td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sumtable tr.grp td{background:var(--surface-2);font-weight:700;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+.checks{display:flex;flex-direction:column;gap:6px}
+.checks label{display:flex;gap:8px;align-items:flex-start;font-size:.92rem}
+.checks input{margin-top:4px;accent-color:var(--accent)}
+.verdict{border-radius:var(--r);padding:14px 16px;border:1.5px solid currentColor;display:flex;flex-direction:column;gap:4px}
+.verdict h3{font-size:1.15rem}
+.verdict ul{margin:4px 0 0;padding-left:18px;color:var(--ink);font-size:.9rem}
+.verdict[data-sev="1"]{color:var(--sev1)} .verdict[data-sev="3"]{color:var(--sev3)} .verdict[data-sev="2"]{color:var(--sev2)} .verdict[data-sev="0"]{color:var(--sev0)}
+textarea.out{width:100%;min-height:160px;font-family:var(--f-mono);font-size:.8rem;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px}
+.disclaimer{max-width:1280px;margin:28px auto 0;font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  nav.side{position:static;flex-direction:row;overflow-x:auto;gap:10px;padding-bottom:6px}
+  .navgroup{flex-direction:row;flex:none;align-items:center}
+  .navgroup .eyebrow{display:none}
+  .navbtn{width:auto;flex:none;background:var(--surface);border-color:var(--line)}
+  .navbtn .nm small{display:none}
+  .bsa-wrap{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .nails{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .imgchoice span{display:none}
+  .regions,.grid2{grid-template-columns:minmax(0,1fr)}
+  .region .preview svg{width:110px}
+  .nrs{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="var(--accent)"/><path d="M9 25c3-9 9-13 14-12s8 6 5 11-11 6-15 4" fill="none" stroke="var(--surface)" stroke-width="2.6" stroke-linecap="round"/><circle cx="20" cy="20" r="2" fill="var(--surface)"/><circle cx="25" cy="17" r="1.3" fill="var(--surface)"/></svg>
+    <div><h1>Escalas de Psoriasis</h1><p>Gravedad, localizaciones especiales y calidad de vida</p></div>
+  </div>
+  <form class="patient" id="patientForm">
+    <div class="field"><label for="p-name">Paciente / NHC</label><input id="p-name" data-path="patient.name" placeholder="Nombre o identificador" size="20"></div>
+    <div class="field"><label for="p-date">Fecha de visita</label><input id="p-date" type="date" data-path="patient.date"></div>
+    <button type="button" class="btn" id="btnExample">Cargar ejemplo</button>
+    <button type="button" class="btn danger" id="btnReset">Nueva evaluación</button>
+  </form>
+</header>
+<div class="banner" id="exampleBanner" hidden><span><b>Datos de ejemplo.</b> Son valores ficticios para mostrar el funcionamiento; pulsa «Nueva evaluación» para empezar con un paciente real.</span></div>
+
+<div class="shell">
+  <nav class="side" id="nav" aria-label="Escalas"></nav>
+  <main id="main"></main>
+</div>
+<p class="disclaimer">Herramienta de apoyo para el cálculo de índices. Las imágenes son ilustraciones esquemáticas recreadas por ordenador con fines orientativos y no sustituyen a la exploración ni al juicio clínico. Fuentes: Grupo de Psoriasis AEDV (2016); Daudén et al. JEADV 2016; NICE CG153; Menter et al. JAAD 2019; Strober et al. JAAD 2020 (IPC); Rich &amp; Scher JAAD 2003 (NAPSI); Langley et al. 2015 (IGA); Finlay &amp; Khan 1994 (DLQI © Cardiff University); Reich et al. 2012 (NRS prurito). Los datos se guardan solo en este navegador.</p>
+
+<script>
+"use strict";
+/* ============================================================
+   Utilidades
+   ============================================================ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const fmt = (n, d = 1) => (Math.round(n * Math.pow(10, d)) / Math.pow(10, d)).toLocaleString("es-ES", { minimumFractionDigits: 0, maximumFractionDigits: d });
+function getP(o, p) { return p.split(".").reduce((a, k) => (a == null ? a : a[k]), o); }
+function setP(o, p, v) { const ks = p.split("."); let a = o; for (let i = 0; i < ks.length - 1; i++) { if (a[ks[i]] == null) a[ks[i]] = {}; a = a[ks[i]]; } a[ks[ks.length - 1]] = v; }
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function hex2rgb(h) { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); }
+function rgb2hex(c) { return "#" + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join(""); }
+function mix(a, b, t) { const A = hex2rgb(a), B = hex2rgb(b); return rgb2hex(A.map((v, i) => v + (B[i] - v) * t)); }
+function ramp(stops, x) { x = Math.max(0, Math.min(stops.length - 1, x)); const i = Math.min(stops.length - 2, Math.floor(x)); return mix(stops[i], stops[i + 1], x - i); }
+let UID = 0;
+
+/* ============================================================
+   Ilustraciones clínicas generadas (SVG)
+   e = eritema, i = induración, d = descamación (0–4, admite decimales)
+   site: skin | scalp | palm | genital
+   ============================================================ */
+const ERY = ["#ddb096", "#eba5a0", "#df7778", "#c4404f", "#8f2133"];
+const SKIN = { skin: ["#f0d0b5", "#e0b493"], scalp: ["#f1d4be", "#e3bc9f"], palm: ["#f5dccb", "#e9c6ab"], genital: ["#dcab9b", "#c78f80"] };
+
+function smooth(pts) {
+  const n = pts.length; let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let k = 0; k < n; k++) {
+    const p0 = pts[(k - 1 + n) % n], p1 = pts[k], p2 = pts[(k + 1) % n], p3 = pts[(k + 2) % n];
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d + "Z";
+}
+function blob(cx, cy, rx, ry, R, N = 13, jit = 0.3) {
+  const rad = []; for (let k = 0; k < N; k++) rad.push(1 - jit / 2 + R() * jit);
+  const pts = rad.map((r, k) => { const a = k / N * Math.PI * 2; return [cx + Math.cos(a) * rx * r, cy + Math.sin(a) * ry * r]; });
+  const rAt = a => { a = ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); const f = a / (2 * Math.PI) * N, i = Math.floor(f) % N; return rad[i] + (rad[(i + 1) % N] - rad[i]) * (f - Math.floor(f)); };
+  const inside = (k = 0.85) => { const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * k * rAt(a); return [cx + Math.cos(a) * rx * rr, cy + Math.sin(a) * ry * rr]; };
+  return { d: smooth(pts), inside };
+}
+function flake(x, y, s, R) {
+  const n = 5 + Math.floor(R() * 3), pts = [];
+  for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2 + R() * .5, r = s * (.55 + R() * .6); pts.push(`${(x + Math.cos(a) * r).toFixed(1)},${(y + Math.sin(a) * r * .8).toFixed(1)}`); }
+  return pts.join(" ");
+}
+
+function lesionSVG(o) {
+  const { e = 0, i = 0, d = 0, site = "skin", seed = 7, w = 120, h = 90, profile = false, hyper = false, pust = 0, size = 1, fissure = false } = o;
+  const u = ++UID, R = rng(seed * 97 + 13), sk = SKIN[site];
+  const cx = w / 2, cy = h / 2 - (profile ? 6 : 0), rx = w * .33 * size, ry = h * .3 * size;
+  let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><defs>`;
+  s += `<linearGradient id="sk${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${sk[0]}"/><stop offset="1" stop-color="${sk[1]}"/></linearGradient>`;
+  s += `<radialGradient id="dm${u}" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity="${(.04 + i * .07).toFixed(2)}"/><stop offset="1" stop-color="#3a0a10" stop-opacity="${(.02 + i * .06).toFixed(2)}"/></radialGradient>`;
+  s += `<filter id="sh${u}" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="${(.5 + i * 1.1).toFixed(1)}" stdDeviation="${(.5 + i * .7).toFixed(1)}" flood-color="#4a1d16" flood-opacity="${(.1 + i * .1).toFixed(2)}"/></filter>`;
+  s += `<filter id="sf${u}"><feGaussianBlur stdDeviation="${i < .5 ? 1.6 : .3}"/></filter>`;
+  s += `<clipPath id="cl${u}"><rect width="${w}" height="${h}" rx="6"/></clipPath></defs><g clip-path="url(#cl${u})">`;
+  s += `<rect width="${w}" height="${h}" fill="url(#sk${u})"/>`;
+  // textura de la piel
+  for (let k = 0; k < 26; k++) s += `<circle cx="${(R() * w).toFixed(1)}" cy="${(R() * h).toFixed(1)}" r="${(.3 + R() * .5).toFixed(2)}" fill="#a87a60" opacity=".25"/>`;
+  if (site === "palm") for (let k = 0; k < 3; k++) { const y0 = h * (.25 + k * .22) + R() * 6; s += `<path d="M-5,${y0.toFixed(1)} Q${w * .45},${(y0 + 14 - R() * 20).toFixed(1)} ${w + 5},${(y0 - 8 + R() * 10).toFixed(1)}" fill="none" stroke="#bf8f73" stroke-width="1.1" opacity=".6"/>`; }
+  if (site === "genital") s += `<path d="M${w * .15},-5 Q${w * .55},${h * .5} ${w * .35},${h + 5}" fill="none" stroke="#9c6656" stroke-width="7" opacity=".28" stroke-linecap="round"/><path d="M${w * .15},-5 Q${w * .55},${h * .5} ${w * .35},${h + 5}" fill="none" stroke="#7a4a3d" stroke-width="1.2" opacity=".45"/>`;
+
+  const B = blob(cx, cy, rx, ry, R);
+  if (hyper) s += `<path d="${B.d}" fill="#b98d70" opacity=".35" filter="url(#sf${u})"/>`;
+  const active = e > 0 || i > 0 || d > 0 || pust > 0;
+  if (active) {
+    const base = e > 0 ? ramp(ERY, e) : mix(sk[1], ERY[1], .35);
+    const glossy = site === "genital";
+    if (i < .5) {
+      s += `<path d="${B.d}" fill="${base}" opacity=".92" filter="url(#sf${u})"/>`;
+    } else {
+      s += `<g filter="url(#sh${u})"><path d="${B.d}" fill="${base}" stroke="${mix(base, "#3d0a14", .18 + i * .06)}" stroke-width="${(.3 + i * .45).toFixed(2)}"/></g>`;
+      s += `<path d="${B.d}" fill="url(#dm${u})"/>`;
+    }
+    if (glossy) {
+      for (let k = 0; k < 2 + Math.round(e); k++) { const [x, y] = B.inside(.6); s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(3 + R() * 5).toFixed(1)}" ry="${(1 + R() * 1.5).toFixed(1)}" fill="#fff" opacity=".35" transform="rotate(${(-30 + R() * 20).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
+      // maceración (sustituye a la escama en semimucosa)
+      for (let k = 0; k < Math.round(d * 4); k++) { const [x, y] = B.inside(.9); s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(2 + R() * 4 + d).toFixed(1)}" ry="${(1 + R() * 1.4).toFixed(1)}" fill="#f4ece4" opacity="${(.35 + d * .1).toFixed(2)}" transform="rotate(${(55 + R() * 30).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
+    } else if (d > 0) {
+      if (d >= 2.5) { const B2 = blob(cx, cy, rx * .78, ry * .74, R, 11, .35); s += `<path d="${B2.d}" fill="#efe8dc" opacity="${(.18 + (d - 2.5) * .35).toFixed(2)}"/>`; }
+      const n = Math.round([0, 12, 30, 60, 110][Math.floor(d)] + ([0, 12, 30, 60, 110][Math.ceil(d)] - [0, 12, 30, 60, 110][Math.floor(d)]) * (d - Math.floor(d)));
+      const sz = .9 + d * .9;
+      for (let k = 0; k < n; k++) {
+        const [x, y] = B.inside(.88);
+        s += `<polygon points="${flake(x, y, sz * (.6 + R() * .8), R)}" fill="${site === "scalp" ? "#f5efe0" : "#f7f4ee"}" opacity="${(.5 + d * .1 + R() * .1).toFixed(2)}" stroke="#cdbfae" stroke-width="${d >= 3.5 ? .5 : .25}"/>`;
+      }
+    }
+    if (pust > 0) {
+      for (let k = 0; k < [0, 5, 12, 22, 36][Math.round(pust)]; k++) { const [x, y] = B.inside(.9); const r = 1.2 + R() * 1.4; s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r + .8).toFixed(1)}" fill="#f8f0cf" opacity=".9"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#e2c454"/>`; }
+    }
+    if (fissure) s += `<path d="M${cx - rx * .5},${cy + 2} l8,-3 l6,4 l9,-5 l7,3" fill="none" stroke="#6d1622" stroke-width="1.3" stroke-linecap="round"/>`;
+  }
+  if (site === "scalp") {
+    for (let k = 0; k < 85; k++) {
+      const x = R() * (w + 30) - 15, y = R() * (h + 20) - 20, L = 16 + R() * 26, a = (-62 + R() * 22) * Math.PI / 180;
+      s += `<path d="M${x.toFixed(1)},${y.toFixed(1)} q${(Math.cos(a) * L * .5 + 3).toFixed(1)},${(-Math.sin(a) * L * .5).toFixed(1)} ${(Math.cos(a) * L).toFixed(1)},${(-Math.sin(a) * L + 4).toFixed(1)}" fill="none" stroke="#3a2820" stroke-width="${(.5 + R() * .6).toFixed(2)}" opacity=".85"/>`;
+    }
+  }
+  if (profile) {
+    const base = h - 5, hg = i * 2.4, sk2 = sk[1], top = ramp(ERY, Math.max(e, 1));
+    s += `<rect x="0" y="${h - 16}" width="${w}" height="16" fill="#fbf7f3" opacity=".92"/>`;
+    s += `<path d="M0,${base} L${w * .25},${base} C${w * .33},${base} ${w * .33},${base - hg} ${w * .4},${base - hg} L${w * .6},${base - hg} C${w * .67},${base - hg} ${w * .67},${base} ${w * .75},${base} L${w},${base} L${w},${h} L0,${h}Z" fill="${sk2}"/>`;
+    if (hg > 0) s += `<path d="M${w * .25},${base} C${w * .33},${base} ${w * .33},${base - hg} ${w * .4},${base - hg} L${w * .6},${base - hg} C${w * .67},${base - hg} ${w * .67},${base} ${w * .75},${base}" fill="none" stroke="${top}" stroke-width="1.6"/>`;
+  }
+  return s + `</g></svg>`;
+}
+
+/* Uña: m = cuadrantes con signos de matriz, b = cuadrantes con signos de lecho; sign = signo aislado para la galería */
+function nailSVG({ m = 0, b = 0, sign = null, seed = 3 } = {}) {
+  const u = ++UID, R = rng(seed * 31 + 5);
+  const X = 11, Y = 14, W = 34, H = 46, mx = X + W / 2, my = Y + H / 2;
+  const Q = [[X, Y, W / 2, H / 2], [mx, Y, W / 2, H / 2], [X, my, W / 2, H / 2], [mx, my, W / 2, H / 2]]; // 0 distal-izq, 1 distal-dcha, 2 proximal-izq, 3 proximal-dcha
+  let s = `<svg viewBox="0 0 56 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><clipPath id="np${u}"><rect x="${X}" y="${Y}" width="${W}" height="${H}" rx="13"/></clipPath></defs>`;
+  s += `<rect x="4" y="5" width="48" height="76" rx="22" fill="#ebc4a7"/>`;
+  s += `<rect x="${X}" y="${Y}" width="${W}" height="${H}" rx="13" fill="#f1cfc6" stroke="#d29d8e" stroke-width="1"/>`;
+  s += `<g clip-path="url(#np${u})"><rect x="${X}" y="${Y}" width="${W}" height="7" fill="#faf3ec"/><ellipse cx="${mx}" cy="${Y + H - 1}" rx="12" ry="7" fill="${sign === "redlunula" ? "#d65b62" : "#f8e9e3"}"/>`;
+  const pits = (q, n = 5) => { const [x, y, w, h] = Q[q]; let r = ""; for (let k = 0; k < n; k++) r += `<circle cx="${(x + 3 + R() * (w - 6)).toFixed(1)}" cy="${(y + 3 + R() * (h - 6)).toFixed(1)}" r="1" fill="#b48c80" stroke="#8a675c" stroke-width=".3"/>`; return r; };
+  const leuko = q => { const [x, y, w, h] = Q[q]; return `<ellipse cx="${(x + w / 2).toFixed(1)}" cy="${(y + h / 2).toFixed(1)}" rx="4" ry="2" fill="#fbfaf6" opacity=".9"/>`; };
+  const onyc = q => { const [x, y, w, h] = Q[q]; return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#efe1b4" opacity=".85"/>`; };
+  const oil = q => { const [x, y, w, h] = Q[q]; return `<ellipse cx="${(x + w / 2).toFixed(1)}" cy="${(y + h / 2).toFixed(1)}" rx="${(w / 2.8).toFixed(1)}" ry="${(h / 3.4).toFixed(1)}" fill="#e4a274" opacity=".75"/>`; };
+  const splinter = q => { const [x, y, w, h] = Q[q]; const xx = x + 4 + R() * (w - 8); return `<line x1="${xx.toFixed(1)}" y1="${y + 2}" x2="${(xx + .6).toFixed(1)}" y2="${(y + h * .7).toFixed(1)}" stroke="#5e1a14" stroke-width=".9" stroke-linecap="round"/>`; };
+  if (sign) {
+    if (sign === "pitting") for (let q = 0; q < 4; q++) s += pits(q, 4);
+    if (sign === "leuko") { s += leuko(0) + leuko(3); }
+    if (sign === "crumbling") { s += `<path d="M${X},${Y} L${X + 6},${Y + 9} L${X + 12},${Y + 4} L${X + 18},${Y + 12} L${X + 25},${Y + 5} L${X + 34},${Y + 10} L${X + 34},${Y} Z" fill="#ebc4a7"/>`; for (let k = 0; k < 7; k++) { const xx = X + 3 + k * 4.6; s += `<line x1="${xx}" y1="${Y + 8}" x2="${xx + .5}" y2="${Y + H - 4}" stroke="#c99a8a" stroke-width=".7"/>`; } }
+    if (sign === "onycholysis") s += `<path d="M${X},${Y} H${X + W} V${Y + 16} Q${mx},${Y + 23} ${X},${Y + 15} Z" fill="#efe1b4"/>`;
+    if (sign === "splinter") { for (let k = 0; k < 3; k++) { const xx = X + 8 + k * 9; s += `<line x1="${xx}" y1="${Y + 6}" x2="${xx + 1}" y2="${Y + 22}" stroke="#5e1a14" stroke-width="1" stroke-linecap="round"/>`; } }
+    if (sign === "hyperk") s += `<path d="M${X},${Y} H${X + W} V${Y + 12} Q${mx},${Y + 17} ${X},${Y + 12} Z" fill="#d8c497"/><path d="M${X},${Y + 3} H${X + W}" stroke="#b9a273" stroke-width="2.5"/>`;
+    if (sign === "oil") s += `<ellipse cx="${mx + 2}" cy="${my - 3}" rx="8" ry="6" fill="#e4a274" opacity=".85"/>`;
+  } else {
+    const mOrder = [2, 3, 0, 1], bOrder = [0, 1, 2, 3];
+    for (let k = 0; k < b; k++) { const q = bOrder[k]; s += (q < 2 ? onyc(q) : oil(q)) + splinter(q); }
+    for (let k = 0; k < m; k++) { const q = mOrder[k]; s += pits(q, 5) + (k % 2 === 0 ? leuko(q) : ""); }
+  }
+  s += `</g>`;
+  if (!sign) s += `<line x1="${mx}" y1="${Y + 1}" x2="${mx}" y2="${Y + H - 1}" stroke="#8a5d52" stroke-width=".6" stroke-dasharray="2 2" opacity=".7"/><line x1="${X + 1}" y1="${my}" x2="${X + W - 1}" y2="${my}" stroke="#8a5d52" stroke-width=".6" stroke-dasharray="2 2" opacity=".7"/>`;
+  s += `<path d="M${X + 1},${Y + H + 1} Q${mx},${Y + H + 7} ${X + W - 1},${Y + H + 1}" fill="none" stroke="#c99c84" stroke-width="1.2"/>`;
+  return s + `</svg>`;
+}
+
+/* ============================================================
+   Definiciones de escalas
+   ============================================================ */
+const AREA_GRADES = [["0", "0 %"], ["1", "<10 %"], ["2", "10–29"], ["3", "30–49"], ["4", "50–69"], ["5", "70–89"], ["6", "90–100"]];
+const INT_LABELS = ["Ninguno", "Leve", "Moderado", "Marcado", "Muy marcado"];
+const PASI_REGIONS = [
+  { k: "head", n: "Cabeza y cuello", w: .1, seed: 11 },
+  { k: "arms", n: "Extremidades superiores", w: .2, seed: 23 },
+  { k: "trunk", n: "Tronco", w: .3, seed: 37 },
+  { k: "legs", n: "Extremidades inferiores", w: .4, seed: 41, extra: "incluye glúteos y genitales" },
+];
+const BSA_REGIONS = [
+  { k: "head", n: "Cabeza y cuello", max: 9 },
+  { k: "armR", n: "Miembro superior derecho", max: 9 },
+  { k: "armL", n: "Miembro superior izquierdo", max: 9 },
+  { k: "trunkA", n: "Tronco, cara anterior", max: 18 },
+  { k: "trunkP", n: "Tronco, cara posterior", max: 18 },
+  { k: "legR", n: "Miembro inferior derecho", max: 18 },
+  { k: "legL", n: "Miembro inferior izquierdo", max: 18 },
+  { k: "perineum", n: "Periné", max: 1 },
+];
+const PGA_SCALES = {
+  iga5: {
+    name: "IGA / sPGA de 5 puntos (0–4)", ref: "Langley et al., 2015. Estándar regulatorio actual.",
+    levels: [
+      { v: 0, t: "Blanqueada", d: "Sin signos de psoriasis; puede persistir hiperpigmentación postinflamatoria.", img: { hyper: true } },
+      { v: 1, t: "Casi blanqueada", d: "Coloración normal a rosada, sin engrosamiento, descamación focal nula o mínima.", img: { e: 1, i: 0, d: .6, size: .8 } },
+      { v: 2, t: "Leve", d: "Rosa a rojo claro, engrosamiento apenas detectable o leve, descamación predominantemente fina.", img: { e: 1.8, i: 1, d: 1.3 } },
+      { v: 3, t: "Moderada", d: "Eritema rojo apagado-brillante, engrosamiento claro a moderado, descamación moderada.", img: { e: 2.9, i: 2.4, d: 2.5 } },
+      { v: 4, t: "Grave", d: "Rojo brillante a rojo oscuro intenso, engrosamiento grave con bordes duros, escama gruesa.", img: { e: 4, i: 4, d: 4 } },
+    ],
+  },
+  pga7: {
+    name: "PGA estático de 7 puntos (0–6)", ref: "Grupo de Psoriasis AEDV, 2016.",
+    levels: [
+      { v: 0, t: "Blanqueada", d: "Sin lesiones activas.", img: { hyper: true } },
+      { v: 1, t: "Casi blanqueada, mínima", d: "Eritema y descamación mínimos.", img: { e: 1, i: 0, d: .6, size: .8 } },
+      { v: 2, t: "Leve", d: "Eritema rosado, descamación fina, infiltración escasa.", img: { e: 1.6, i: .8, d: 1.2 } },
+      { v: 3, t: "Leve a moderada", d: "Infiltración leve, eritema y descamación moderados.", img: { e: 2.2, i: 1.2, d: 2 } },
+      { v: 4, t: "Moderada", d: "Eritema, infiltración y descamación moderados.", img: { e: 2.7, i: 2.2, d: 2.5 } },
+      { v: 5, t: "Moderada a grave", d: "Infiltración, eritema o descamación marcados.", img: { e: 3.4, i: 3, d: 3.2 } },
+      { v: 6, t: "Grave", d: "Eritema, infiltración y descamación muy marcados.", img: { e: 4, i: 4, d: 4 } },
+    ],
+  },
+};
+const PGA_DYN = [[5, "Blanqueamiento o mejoría del 90–100 %"], [4, "Mejoría importante, 70–90 %"], [3, "Mejoría de moderada a importante, 50–70 %"], [2, "Mejoría moderada, 30–50 %"], [1, "Mejoría leve, 10–30 %"], [0, "Sin cambios o cambios mínimos"], [-1, "Empeoramiento leve"], [-2, "Empeoramiento moderado"], [-3, "Empeoramiento de moderado a importante"], [-4, "Empeoramiento importante"], [-5, "Empeoramiento muy importante"]];
+
+/* Escalas globales de 6 puntos (0–5) para localizaciones especiales: descriptores resumidos */
+function sixPoint(site, extra = {}) {
+  const fiss = site !== "scalp";
+  return [
+    { v: 0, t: "Aclarada", d: "Sin signos de psoriasis en la zona.", img: { hyper: site !== "genital" } },
+    { v: 1, t: "Casi aclarada", d: site === "genital" ? "Eritema mínimo, sin elevación de la placa." : "Eritema mínimo y descamación fina mínima, sin elevación.", img: { e: 1, i: 0, d: site === "genital" ? 0 : .6, size: .8 } },
+    { v: 2, t: "Leve", d: site === "genital" ? "Eritema rosa-rojo claro, elevación mínima; brillo leve." : "Eritema rosa-rojo claro, elevación leve, descamación fina.", img: { e: 1.8, i: 1, d: site === "genital" ? .5 : 1.3 } },
+    { v: 3, t: "Moderada", d: site === "genital" ? "Eritema rojo, bordes infiltrados definidos, maceración moderada." : "Eritema rojo, elevación clara, descamación moderada.", img: { e: 2.8, i: 2.2, d: site === "genital" ? 1.5 : 2.5 } },
+    { v: 4, t: "Grave", d: site === "genital" ? "Eritema rojo intenso, infiltración marcada, maceración evidente." : "Eritema rojo intenso, elevación marcada, escama gruesa" + (fiss ? "; posibles fisuras." : "."), img: { e: 3.5, i: 3.2, d: site === "genital" ? 2.5 : 3.4 } },
+    { v: 5, t: "Muy grave", d: site === "genital" ? "Eritema rojo oscuro, infiltración muy marcada, maceración y fisuras." : "Eritema rojo oscuro, induración muy marcada, escama gruesa adherente" + (fiss ? " y fisuras." : "; puede sobrepasar el borde del pelo."), img: { e: 4, i: 4, d: site === "genital" ? 3.5 : 4, fissure: fiss } },
+  ];
+}
+
+const DLQI_Q = [
+  "¿Ha sentido picor, dolor o escozor en la piel?",
+  "¿Se ha sentido incómodo/a o cohibido/a debido a sus problemas de piel?",
+  "¿Le han molestado sus problemas de piel para hacer la compra u ocuparse de la casa (o del jardín)?",
+  "¿Han influido sus problemas de piel en la elección de la ropa que lleva?",
+  "¿Han influido sus problemas de piel en cualquier actividad social o recreativa?",
+  "¿Ha tenido dificultades para hacer deporte debido a sus problemas de piel?",
+  "¿Sus problemas de piel le han impedido totalmente trabajar o estudiar? Si la respuesta es «No»: ¿le han molestado sus problemas de piel en su trabajo o en sus estudios?",
+  "¿Sus problemas de piel le han ocasionado dificultades con su pareja, amigos íntimos o familiares?",
+  "¿Le han molestado sus problemas de piel en su vida sexual?",
+  "¿El tratamiento de su piel le ha ocasionado problemas, por ejemplo, ocupándole demasiado tiempo o ensuciando su domicilio?",
+];
+const DLQI_OPTS = [["3", "Muchísimo"], ["2", "Bastante"], ["1", "Un poco"], ["0", "Nada"], ["np", "No procede"]];
+const DLQI_Q7 = [["3", "Sí, me lo impidió"], ["2", "No · bastante"], ["1", "No · un poco"], ["0", "No · nada"], ["np", "No procede"]];
+
+const FINGERS = ["Pulgar", "Índice", "Medio", "Anular", "Meñique"];
+const TOES = ["1.º dedo", "2.º dedo", "3.º dedo", "4.º dedo", "5.º dedo"];
+
+/* ============================================================
+   Estado
+   ============================================================ */
+const zeroEID = () => ({ e: 0, i: 0, d: 0, a: 0 });
+function emptyState() {
+  return {
+    example: false,
+    patient: { name: "", date: new Date().toISOString().slice(0, 10) },
+    bsa: Object.fromEntries(BSA_REGIONS.map(r => [r.k, 0])),
+    pasi: Object.fromEntries(PASI_REGIONS.map(r => [r.k, zeroEID()])), pasiBase: "",
+    pga: { ver: "iga5", iga5: null, pga7: null, dyn: null, base: "" },
+    napsi: { feet: false, nails: Array.from({ length: 20 }, () => ({ m: 0, b: 0 })) },
+    pssi: zeroEID(), sspga: null,
+    ppasi: { mode: "grouped", pust: false, palms: zeroEID(), soles: zeroEID(), palmR: zeroEID(), palmL: zeroEID(), soleR: zeroEID(), soleL: zeroEID() }, pppga: null,
+    gpsi: zeroEID(), spgag: null,
+    dlqi: Array(10).fill(null),
+    itch: null,
+    crit: { systemic: false, erythro: false, gpp: false, lpp: false, special: false, psa: false, topfail: false },
+  };
+}
+function exampleState() {
+  const s = emptyState(); s.example = true; s.patient.name = "Ejemplo · Paciente 0001";
+  Object.assign(s.bsa, { head: 1, armR: 2, armL: 2, trunkA: 2, trunkP: 2, legR: 1.5, legL: 1.5, perineum: 0 });
+  s.pasi.head = { a: 2, e: 2, i: 2, d: 3 }; s.pasi.arms = { a: 2, e: 3, i: 2, d: 2 }; s.pasi.trunk = { a: 1, e: 2, i: 2, d: 2 }; s.pasi.legs = { a: 1, e: 3, i: 3, d: 3 };
+  s.pasiBase = "18.4";
+  s.pga.iga5 = 3; s.pga.base = "";
+  [[1, 1], [2, 0], [0, 0], [1, 2], [0, 0], [2, 1], [0, 0], [0, 0], [1, 0], [0, 0]].forEach((v, k) => { s.napsi.nails[k] = { m: v[0], b: v[1] }; });
+  s.pssi = { e: 2, i: 2, d: 3, a: 2 }; s.sspga = 3;
+  s.dlqi = [2, 2, 1, 1, 1, 0, 1, 0, "np", 1];
+  s.itch = 6;
+  return s;
+}
+const STORE = "psoriasis-escalas-v1";
+let S;
+try { const raw = localStorage.getItem(STORE); S = raw ? Object.assign(emptyState(), JSON.parse(raw)) : exampleState(); } catch (_) { S = exampleState(); }
+function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (_) { } }
+
+/* ============================================================
+   Cálculos
+   ============================================================ */
+const sumEID = o => (+o.e || 0) + (+o.i || 0) + (+o.d || 0);
+const grade = p => p <= 0 ? 0 : p < 10 ? 1 : p < 30 ? 2 : p < 50 ? 3 : p < 70 ? 4 : p < 90 ? 5 : 6;
+function calc() {
+  const C = {};
+  C.bsa = BSA_REGIONS.reduce((a, r) => a + (+S.bsa[r.k] || 0), 0);
+  C.pasiReg = {}; C.pasi = 0;
+  PASI_REGIONS.forEach(r => { const o = S.pasi[r.k]; const v = sumEID(o) * (+o.a || 0) * r.w; C.pasiReg[r.k] = v; C.pasi += v; });
+  const base = parseFloat(String(S.pasiBase).replace(",", "."));
+  C.pasiBase = isFinite(base) && base > 0 ? base : null;
+  C.pasiImp = C.pasiBase ? (C.pasiBase - C.pasi) / C.pasiBase * 100 : null;
+  C.pgaVal = S.pga[S.pga.ver];
+  C.pgaBsa = C.pgaVal != null ? C.pgaVal * C.bsa : null;
+  const n = S.napsi.feet ? 20 : 10;
+  C.napsi = S.napsi.nails.slice(0, n).reduce((a, x) => a + x.m + x.b, 0); C.napsiMax = n * 8;
+  C.napsiHands = S.napsi.nails.slice(0, 10).reduce((a, x) => a + x.m + x.b, 0);
+  C.napsiFeet = S.napsi.feet ? S.napsi.nails.slice(10, 20).reduce((a, x) => a + x.m + x.b, 0) : null;
+  C.napsiNails = S.napsi.nails.slice(0, n).filter(x => x.m + x.b > 0).length;
+  C.pssi = sumEID(S.pssi) * (+S.pssi.a || 0);
+  const P = S.ppasi;
+  C.ppasi = P.mode === "grouped" ? .4 * sumEID(P.palms) * P.palms.a + .6 * sumEID(P.soles) * P.soles.a
+    : .2 * sumEID(P.palmR) * P.palmR.a + .2 * sumEID(P.palmL) * P.palmL.a + .3 * sumEID(P.soleR) * P.soleR.a + .3 * sumEID(P.soleL) * P.soleL.a;
+  C.gpsi = sumEID(S.gpsi) * (+S.gpsi.a || 0);
+  C.dlqiAns = S.dlqi.filter(v => v !== null).length;
+  C.dlqi = C.dlqiAns ? S.dlqi.reduce((a, v) => a + (v === null || v === "np" ? 0 : +v), 0) : null;
+  C.itch = S.itch;
+  C.specialAreas = [C.napsi > 0 && "uñas", C.pssi > 0 && "cuero cabelludo", C.ppasi > 0 && "palmas/plantas", (C.gpsi > 0 || (S.spgag || 0) > 0) && "genitales"].filter(Boolean);
+  return C;
+}
+function sevPASI(v) { return v <= 0 ? [0, "Sin lesiones"] : v < 5 ? [1, "Leve"] : v <= 10 ? [2, "Moderada"] : [3, "Grave"]; }
+function sevBSA(v) { return v <= 0 ? [0, "Sin afectación"] : v < 3 ? [1, "Leve (AAD)"] : v <= 10 ? [2, "Moderada (AAD)"] : [3, "Grave (AAD)"]; }
+function sevDLQI(v) { if (v == null) return [0, "Sin completar"]; return v <= 1 ? [1, "Sin efecto en la vida del paciente"] : v <= 5 ? [1, "Efecto pequeño"] : v <= 10 ? [2, "Efecto moderado"] : v <= 20 ? [3, "Efecto muy importante"] : [4, "Efecto extremadamente importante"]; }
+function sevItch(v) { if (v == null) return [0, "Sin valorar"]; return v === 0 ? [0, "Sin prurito"] : v < 4 ? [1, "Prurito leve"] : v < 7 ? [2, "Prurito moderado"] : v < 9 ? [3, "Prurito grave"] : [4, "Prurito muy grave"]; }
+function sevPGA(ver, v) { if (v == null) return [0, "Sin valorar"]; const L = PGA_SCALES[ver].levels[v]; const max = PGA_SCALES[ver].levels.length - 1; const r = v / max; return [v === 0 ? 0 : r <= .25 ? 1 : r <= .5 ? 2 : r < 1 ? 3 : 4, L.t]; }
+function sevSix(v) { if (v == null) return [0, "Sin valorar"]; return [[0, "Aclarada"], [1, "Casi aclarada"], [1, "Leve"], [2, "Moderada"], [3, "Grave"], [4, "Muy grave"]][v]; }
+function sevFrac(v, max) { if (!v) return [0, "Sin afectación"]; const r = v / max; return r < .15 ? [1, "Afectación baja"] : r < .4 ? [2, "Afectación intermedia"] : [3, "Afectación alta"]; }
+
+/* ============================================================
+   Plantillas
+   ============================================================ */
+function seg(path, opts, cls = "") {
+  return `<div class="seg ${cls}" role="group">` + opts.map(([v, l, sm]) => `<button type="button" data-path="${path}" data-val="${v}" aria-pressed="false">${l}${sm ? `<small>${sm}</small>` : ""}</button>`).join("") + `</div>`;
+}
+function imgRow(path, param, site, seed, opt = {}) {
+  const mk = k => {
+    const o = { site, seed, w: 120, h: 90 };
+    if (param === "e") Object.assign(o, { e: k, i: 1, d: 0 });
+    if (param === "i") Object.assign(o, { e: 2, i: k, d: site === "genital" ? 0 : .5, profile: true });
+    if (param === "d") Object.assign(o, site === "genital" ? { e: 2, i: 1, d: k } : opt.pust ? { e: 2, i: .8, d: 0, pust: k } : { e: 2, i: 1, d: k });
+    if (k === 0 && param === "e") o.e = 0;
+    return lesionSVG(o);
+  };
+  return `<div class="imgchoice" role="group">` + [0, 1, 2, 3, 4].map(k => `<button type="button" data-path="${path}" data-val="${k}" aria-pressed="false" title="${k} · ${INT_LABELS[k]}">${mk(k)}<b>${k}</b><span>${INT_LABELS[k]}</span></button>`).join("") + `</div>`;
+}
+function eidBlock(path, site, seed, labels = {}, opt = {}) {
+  const L = Object.assign({ e: "Eritema", i: "Induración / infiltración", d: "Descamación" }, labels);
+  return ["e", "i", "d"].map(p => `<div class="paramrow"><div class="lbl"><span>${L[p]}</span><span class="mono muted" data-out="${path}.${p}"></span></div>${imgRow(`${path}.${p}`, p, site, seed + p.charCodeAt(0), opt)}</div>`).join("")
+    + `<div class="paramrow"><div class="lbl"><span>Extensión del área afectada</span><span class="mono muted" data-out="${path}.a"></span></div>${seg(path + ".a", AREA_GRADES.map(([v, l]) => [v, v, l === "0 %" ? "0 %" : l + (l.includes("%") ? "" : " %")]))}</div>`;
+}
+function levelCards(path, levels, site, seed) {
+  return `<div class="levels" role="group">` + levels.map(L => `<button type="button" class="level" data-path="${path}" data-val="${L.v}" aria-pressed="false">${lesionSVG(Object.assign({ site, seed: seed + L.v, w: 160, h: 100 }, L.img))}<div class="lt"><b>${L.v}</b><span>${L.t}</span></div><p>${L.d}</p></button>`).join("") + `</div>`;
+}
+function scorebox(id, max, extra = "") {
+  return `<div class="scorebox"><span class="eyebrow">${id.label}</span><span><span class="val" data-out="${id.key}">0</span> <span class="max">${max}</span></span><span class="sevpill" data-sevout="${id.key}">—</span>${extra}</div>`;
+}
+
+const SECTIONS = [
+  { g: "Escalas generales", k: "bsa", n: "BSA", sub: "Superficie corporal" },
+  { g: "Escalas generales", k: "pasi", n: "PASI", sub: "Intensidad y extensión" },
+  { g: "Escalas generales", k: "pga", n: "PGA", sub: "Evaluación global del médico" },
+  { g: "Escalas generales", k: "dlqi", n: "DLQI", sub: "Calidad de vida" },
+  { g: "Escalas generales", k: "itch", n: "EVA del picor", sub: "Intensidad del prurito" },
+  { g: "Localizaciones especiales", k: "napsi", n: "NAPSI", sub: "Uñas" },
+  { g: "Localizaciones especiales", k: "pssi", n: "PSSI", sub: "Cuero cabelludo" },
+  { g: "Localizaciones especiales", k: "ppasi", n: "PPASI", sub: "Palmas y plantas" },
+  { g: "Localizaciones especiales", k: "genital", n: "GPSI · s-PGA-G", sub: "Área genital" },
+  { g: "Informe", k: "summary", n: "Resumen", sub: "Clasificación de gravedad" },
+];
+
+function buildNav() {
+  const groups = [...new Set(SECTIONS.map(s => s.g))];
+  $("#nav").innerHTML = groups.map(g => `<div class="navgroup"><span class="eyebrow">${g}</span>` + SECTIONS.filter(s => s.g === g).map(s => `<button type="button" class="navbtn" data-go="${s.k}"><span class="nm">${s.n}<small>${s.sub}</small></span><span class="chip" data-chip="${s.k}">—</span></button>`).join("") + `</div>`).join("");
+}
+
+function bodyMap() {
+  const fig = (cx, view) => {
+    const isF = view === "front";
+    const [aL, aR, lL, lR] = isF ? ["armR", "armL", "legR", "legL"] : ["armL", "armR", "legL", "legR"];
+    const T = isF ? "trunkA" : "trunkP";
+    let g = `<g>`;
+    g += `<rect class="bm-r" data-region="${lL}" x="${cx - 22}" y="120" width="19" height="120" rx="8"/>`;
+    g += `<rect class="bm-r" data-region="${lR}" x="${cx + 3}" y="120" width="19" height="120" rx="8"/>`;
+    g += `<g transform="translate(${cx - 29},48) rotate(13)"><rect class="bm-r" data-region="${aL}" x="-6" y="0" width="12" height="92" rx="6"/></g>`;
+    g += `<g transform="translate(${cx + 29},48) rotate(-13)"><rect class="bm-r" data-region="${aR}" x="-6" y="0" width="12" height="92" rx="6"/></g>`;
+    g += `<path class="bm-r" data-region="${T}" d="M${cx - 25},47 Q${cx},40 ${cx + 25},47 L${cx + 23},121 Q${cx},128 ${cx - 23},121 Z"/>`;
+    g += `<path class="bm-r" data-region="head" d="M${cx - 6},36 h12 v10 h-12z M${cx},8 a13,15 0 1,1 -0.01,0z"/>`;
+    if (isF) g += `<path class="bm-r" data-region="perineum" d="M${cx - 6},119 L${cx + 6},119 L${cx},131 Z"/>`;
+    g += `<text class="bm-lbl" x="${cx}" y="256" text-anchor="middle">${isF ? "ANTERIOR" : "POSTERIOR"}</text>`;
+    g += `<text class="bm-lbl" x="${cx - 52}" y="70" text-anchor="middle">${isF ? "D" : "I"}</text><text class="bm-lbl" x="${cx + 52}" y="70" text-anchor="middle">${isF ? "I" : "D"}</text>`;
+    return g + `</g>`;
+  };
+  return `<svg viewBox="0 0 300 262" role="img" aria-label="Mapa corporal: pulsa una región para editarla">${fig(78, "front")}${fig(222, "back")}</svg>`;
+}
+
+function buildMain() {
+  const M = $("#main");
+  let h = "";
+  /* ---------- BSA ---------- */
+  h += `<section class="panel" id="sec-bsa" data-sec="bsa">
+  <div class="phead"><div class="intro"><span class="eyebrow">Escala general · extensión</span><h2>BSA · Superficie corporal afectada</h2>
+  <p>Regla de la palma: la palma del paciente con los dedos juntos equivale al 1 % de su superficie corporal. Anota cuántas palmas ocupan las lesiones en cada región; los límites siguen la regla del 9 de Wallace (válida en adultos).</p></div>
+  ${scorebox({ label: "BSA total", key: "bsa" }, "% SC")}</div>
+  <div class="bsa-wrap"><div class="card bodymap"><div class="card-h"><h3>Mapa corporal</h3><span class="small muted">Pulsa una región para ir a su campo</span></div>${bodyMap()}
+  <p class="note">No incluyas zonas de discromía residual. En formas en gotas o pequeñas placas el BSA tiende a sobreestimarse.</p></div>
+  <div class="card"><div class="card-h"><h3>Palmas por región</h3><span class="small muted">1 palma = 1 %</span></div><div class="steplist">`
+    + BSA_REGIONS.map(r => `<div class="steprow" id="row-${r.k}"><div class="rn">${r.n}<small>máx. ${r.max} %</small><div class="bar"><i data-bar="${r.k}" style="width:0"></i></div></div>
+    <div class="stepper"><button type="button" data-step="${r.k}" data-d="-0.5" aria-label="Restar media palma">−</button><input id="bsa-${r.k}" inputmode="decimal" data-path="bsa.${r.k}" data-num="${r.max}" aria-label="${r.n}, palmas"><button type="button" data-step="${r.k}" data-d="0.5" aria-label="Sumar media palma">+</button></div>
+    <span class="mono small muted" data-out="bsaPct.${r.k}"></span></div>`).join("")
+    + `</div><button type="button" class="btn" id="bsaToPasi">Usar estos datos para la extensión del PASI</button></div></div>
+  </section>`;
+
+  /* ---------- PASI ---------- */
+  h += `<section class="panel" id="sec-pasi" data-sec="pasi">
+  <div class="phead"><div class="intro"><span class="eyebrow">Escala general · intensidad y extensión</span><h2>PASI · Psoriasis Area and Severity Index</h2>
+  <p>En cada región elige el grado de eritema, induración y descamación de la lesión media (0–4) tocando la imagen que más se parezca, y la extensión (0–6).</p>
+  <div class="formula">PASI = Σ (E + I + D) × A × peso   ·   cabeza 0,1 · brazos 0,2 · tronco 0,3 · piernas 0,4   ·   rango 0–72</div></div>
+  ${scorebox({ label: "PASI absoluto", key: "pasi" }, "/ 72")}</div>
+  <div class="regions">`
+    + PASI_REGIONS.map(r => `<div class="card region"><div class="card-h"><h3>${r.n}</h3><span class="small muted">peso ${String(r.w).replace(".", ",")}${r.extra ? " · " + r.extra : ""}</span></div>
+    <div class="preview"><div data-prev="pasi.${r.k}"></div><div><span class="eyebrow">Subtotal</span><div class="sub" data-out="pasiReg.${r.k}">0</div><span class="small muted" data-out="pasiForm.${r.k}"></span></div></div>
+    ${eidBlock("pasi." + r.k, r.k === "head" ? "scalp" : "skin", r.seed)}</div>`).join("")
+    + `</div>
+  <div class="card"><div class="card-h"><h3>Respuesta al tratamiento</h3><span class="small muted">PASI 50 / 75 / 90 / 100</span></div>
+  <div class="field" style="max-width:220px"><label for="pasiBase">PASI basal</label><input id="pasiBase" inputmode="decimal" data-path="pasiBase" placeholder="p. ej. 18,4"></div>
+  <div data-out="pasiResp" class="small"></div>
+  <p class="note">Algunas versiones antiguas añaden el picor como cuarto parámetro; la versión estándar (rango 0–72) usa solo eritema, induración y descamación. El PASI no está validado en niños y es poco sensible con superficie afectada &lt;10 %.</p></div>
+  </section>`;
+
+  /* ---------- PGA ---------- */
+  h += `<section class="panel" id="sec-pga" data-sec="pga">
+  <div class="phead"><div class="intro"><span class="eyebrow">Escala general · evaluación global</span><h2>PGA · Physician Global Assessment</h2>
+  <p>Puntuación promedio de la intensidad de todas las lesiones, sin valorar extensión ni localización. Elige la imagen y la descripción que mejor representen el conjunto.</p></div>
+  ${scorebox({ label: "PGA", key: "pga" }, "", `<span class="small muted" data-out="pgaBsa"></span>`)}</div>
+  <div class="card"><div class="card-h"><h3>Versión de la escala</h3></div>${seg("pga.ver", [["iga5", "IGA / sPGA 0–4"], ["pga7", "PGA estático 0–6"], ["dyn", "PGA dinámico −5 a +5"]])}<p class="small muted" data-out="pgaRef"></p></div>
+  <div data-pga="iga5">${levelCards("pga.iga5", PGA_SCALES.iga5.levels, "skin", 300)}</div>
+  <div data-pga="pga7">${levelCards("pga.pga7", PGA_SCALES.pga7.levels, "skin", 400)}</div>
+  <div data-pga="dyn" class="card"><div class="card-h"><h3>Evolución respecto a la situación basal</h3></div><div class="dynlist" role="group">${PGA_DYN.map(([v, t]) => `<button type="button" data-path="pga.dyn" data-val="${v}" aria-pressed="false"><b>${v > 0 ? "+" + v : v}</b><span>${t}</span></button>`).join("")}</div>
+  <p class="note">Requiere que el observador recuerde la situación basal del paciente.</p></div>
+  <p class="note">Éxito terapéutico en ensayos: PGA 0 o 1 con mejoría ≥2 puntos respecto al basal. El producto PGA × BSA (Walsh 2013) se correlaciona con el PASI (r = 0,87). Indica siempre qué versión has utilizado.</p>
+  </section>`;
+
+  /* ---------- DLQI ---------- */
+  h += `<section class="panel" id="sec-dlqi" data-sec="dlqi">
+  <div class="phead"><div class="intro"><span class="eyebrow">Escala general · resultado percibido por el paciente</span><h2>DLQI · Índice de calidad de vida en dermatología</h2>
+  <p>Diez preguntas referidas a los <b>últimos 7 días</b>. Lo rellena el propio paciente en unos 2 minutos. «No procede» puntúa 0.</p></div>
+  ${scorebox({ label: "DLQI", key: "dlqi" }, "/ 30", `<span class="small muted" data-out="dlqiAns"></span>`)}</div>
+  <div class="qlist">` + DLQI_Q.map((q, k) => `<div class="q" data-q="${k}"><span class="qn">${k + 1}</span><span class="qt">Durante los últimos 7 días, ${q.replace(/^¿(.)/, (m, c) => "¿" + c.toLowerCase())}</span><div>${seg("dlqi." + k, (k === 6 ? DLQI_Q7 : k < 2 ? DLQI_OPTS.slice(0, 4) : DLQI_OPTS).map(([v, l]) => [v, l]))}</div></div>`).join("") + `</div>
+  <p class="note">Interpretación (Hongbo et al., 2005): 0–1 sin efecto · 2–5 pequeño · 6–10 moderado · 11–20 muy importante · 21–30 extremadamente importante. DLQI &gt;10 es criterio de psoriasis moderada-grave (AEDV). © AY Finlay, GK Khan; versiones validadas en la web de la Universidad de Cardiff.</p>
+  </section>`;
+
+  /* ---------- Picor ---------- */
+  h += `<section class="panel" id="sec-itch" data-sec="itch">
+  <div class="phead"><div class="intro"><span class="eyebrow">Escala general · síntoma</span><h2>EVA del picor</h2>
+  <p>Pide al paciente que marque la intensidad de su <b>peor picor en las últimas 24 horas</b>, de 0 (sin picor) a 10 (el peor picor imaginable).</p></div>
+  ${scorebox({ label: "Prurito", key: "itch" }, "/ 10")}</div>
+  <div class="card"><div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><span class="itch-val" data-out="itchBig">—</span><div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:6px">
+  <div class="itch-scale" aria-hidden="true"></div><input type="range" class="itch-range" id="itchRange" min="0" max="10" step="0.5" data-path="itch" aria-label="Intensidad del picor de 0 a 10">
+  <div class="ticks"><span>0 · sin picor</span><span>5</span><span>10 · insoportable</span></div></div></div>
+  <div class="paramrow"><span class="lbl">Escala numérica (NRS)</span><div class="nrs" role="group">${Array.from({ length: 11 }, (_, k) => `<button type="button" data-path="itch" data-val="${k}" aria-pressed="false">${k}</button>`).join("")}</div></div>
+  <p class="note">Bandas (Reich et al., 2012): 0 sin prurito · &lt;4 leve · 4–&lt;7 moderado · 7–&lt;9 grave · ≥9 muy grave. Un cambio ≥4 puntos se considera clínicamente relevante. El prurito intratable es criterio de gravedad para la AAD.</p></div>
+  </section>`;
+
+  /* ---------- NAPSI ---------- */
+  const nailCard = (k) => { const foot = k >= 10, side = (k % 10) < 5 ? "D" : "I", nm = (foot ? TOES : FINGERS)[k % 5]; return `<div class="nail" data-nail="${k}"><span class="nn">${nm} ${side}</span><div data-nailsvg="${k}"></div>
+    <div class="mini"><span class="ml">Matriz</span>${seg(`napsi.nails.${k}.m`, [0, 1, 2, 3, 4].map(v => [v, v]))}</div>
+    <div class="mini"><span class="ml">Lecho</span>${seg(`napsi.nails.${k}.b`, [0, 1, 2, 3, 4].map(v => [v, v]))}</div>
+    <span class="ns" data-out="nail.${k}">0/8</span></div>`; };
+  h += `<section class="panel" id="sec-napsi" data-sec="napsi">
+  <div class="phead"><div class="intro"><span class="eyebrow">Localización especial · uñas</span><h2>NAPSI · Nail Psoriasis Severity Index</h2>
+  <p>Divide cada uña en 4 cuadrantes. Para la <b>matriz</b> y para el <b>lecho</b>, cuenta en cuántos cuadrantes aparece al menos un signo (0–4). Cada uña puntúa 0–8.</p>
+  <div class="formula">NAPSI = Σ (matriz + lecho)   ·   0–80 manos   ·   0–160 manos y pies</div></div>
+  ${scorebox({ label: "NAPSI", key: "napsi" }, "", `<span class="small muted" data-out="napsiDet"></span>`)}</div>
+  <div class="card"><div class="card-h"><h3>Signos que puntúan</h3><span class="small muted">Esquemas recreados</span></div>
+  <div class="grid2"><div><span class="eyebrow">Matriz ungueal</span><div class="signs" style="margin-top:6px">
+  ${[["pitting", "Piqueteado", "Depresiones puntiformes en la lámina"], ["leuko", "Leuconiquia", "Manchas blancas en la lámina"], ["redlunula", "Lúnula roja", "Puntos rojos o eritema en la lúnula"], ["crumbling", "Traquioniquia / desmoronamiento", "Lámina rugosa y quebradiza"]].map(([s, b, t]) => `<div class="sign">${nailSVG({ sign: s })}<div><b>${b}</b><span>${t}</span></div></div>`).join("")}</div></div>
+  <div><span class="eyebrow">Lecho ungueal</span><div class="signs" style="margin-top:6px">
+  ${[["onycholysis", "Onicólisis", "Separación distal de la lámina"], ["splinter", "Hemorragias en astilla", "Líneas rojo-marrón longitudinales"], ["hyperk", "Hiperqueratosis subungueal", "Engrosamiento bajo el borde libre"], ["oil", "Mancha de aceite", "Mancha salmón-amarillenta"]].map(([s, b, t]) => `<div class="sign">${nailSVG({ sign: s })}<div><b>${b}</b><span>${t}</span></div></div>`).join("")}</div></div></div></div>
+  <div class="card"><div class="card-h"><h3>Manos</h3><span class="mono small" data-out="napsiHands"></span></div><div class="nails">${Array.from({ length: 10 }, (_, k) => nailCard(k)).join("")}</div>
+  <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="napsiFeet" data-path="napsi.feet" data-bool="1"> Evaluar también las uñas de los pies (máximo 160)</label></div>
+  <div class="card" id="feetCard"><div class="card-h"><h3>Pies</h3><span class="mono small" data-out="napsiFeetOut"></span></div><div class="nails">${Array.from({ length: 10 }, (_, k) => nailCard(k + 10)).join("")}</div></div>
+  </section>`;
+
+  /* ---------- PSSI ---------- */
+  h += `<section class="panel" id="sec-pssi" data-sec="pssi">
+  <div class="phead"><div class="intro"><span class="eyebrow">Localización especial · cuero cabelludo</span><h2>PSSI · Psoriasis Scalp Severity Index</h2>
+  <p>Equivalente al PASI restringido al cuero cabelludo. Valora la lesión media y el porcentaje de cuero cabelludo afectado.</p>
+  <div class="formula">PSSI = (E + I + D) × A   ·   rango 0–72</div></div>
+  ${scorebox({ label: "PSSI", key: "pssi" }, "/ 72")}</div>
+  <div class="grid2"><div class="card"><div class="card-h"><h3>Parámetros</h3><div data-prev="pssi"></div></div>${eidBlock("pssi", "scalp", 500)}</div>
+  <div class="card"><div class="card-h"><h3>ss-PGA (alternativa global, 0–5)</h3><span class="mono" data-out="sspgaTxt"></span></div>${levelCards("sspga", sixPoint("scalp"), "scalp", 520)}
+  <p class="note">Escala estática específica de cuero cabelludo, frecuente en ensayos. Descriptores resumidos.</p></div></div>
+  </section>`;
+
+  /* ---------- PPASI ---------- */
+  const ppSite = (key, label) => `<div class="card"><div class="card-h"><h3>${label}</h3><span class="mono" data-out="ppSub.${key}"></span></div><div data-prev="ppasi.${key}"></div>${eidBlock("ppasi." + key, "palm", 600 + key.length * 7, { d: "<span data-dlabel>Descamación</span>" }, {})}</div>`;
+  h += `<section class="panel" id="sec-ppasi" data-sec="ppasi">
+  <div class="phead"><div class="intro"><span class="eyebrow">Localización especial · palmas y plantas</span><h2>PPASI · Palmoplantar Psoriasis Area and Severity Index</h2>
+  <p>Modificación del PASI aplicada solo a palmas y plantas. Elige si evalúas palmas y plantas agrupadas o cada una por separado.</p>
+  <div class="formula" data-out="ppFormula"></div></div>
+  ${scorebox({ label: "PPASI", key: "ppasi" }, "/ 72")}</div>
+  <div class="card"><div class="card-h"><h3>Modo de evaluación</h3></div>${seg("ppasi.mode", [["grouped", "Agrupado", "palmas 0,4 · plantas 0,6"], ["separate", "Por separado", "cada palma 0,2 · cada planta 0,3"]])}
+  <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ppPust" data-path="ppasi.pust" data-bool="1"> Variante pustulosa (PPPASI): el tercer parámetro valora las pústulas en lugar de la descamación</label></div>
+  <div class="grid2" data-ppmode="grouped">${ppSite("palms", "Palmas (ambas)")}${ppSite("soles", "Plantas (ambas)")}</div>
+  <div class="grid2" data-ppmode="separate">${ppSite("palmR", "Palma derecha")}${ppSite("palmL", "Palma izquierda")}${ppSite("soleR", "Planta derecha")}${ppSite("soleL", "Planta izquierda")}</div>
+  <div class="card"><div class="card-h"><h3>pp-PGA (alternativa global, 0–5)</h3><span class="mono" data-out="pppgaTxt"></span></div>${levelCards("pppga", sixPoint("palm"), "palm", 700)}<p class="note">Escala estática palmoplantar. Descriptores resumidos.</p></div>
+  </section>`;
+
+  /* ---------- Genital ---------- */
+  h += `<section class="panel" id="sec-genital" data-sec="genital">
+  <div class="phead"><div class="intro"><span class="eyebrow">Localización especial · área genital</span><h2>GPSI y s-PGA-G · Psoriasis genital</h2>
+  <p>En semimucosa la descamación suele faltar o quedar atenuada por la maceración, por eso el tercer parámetro valora descamación o maceración. La extensión incluye pene, escroto, vulva, pliegues perineales e interglúteo.</p></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">${scorebox({ label: "GPSI", key: "gpsi" }, "/ 72")}${scorebox({ label: "s-PGA-G", key: "spgag" }, "/ 5")}</div></div>
+  <div class="grid2"><div class="card"><div class="card-h"><h3>GPSI · Genital Psoriasis Severity Index</h3><div data-prev="gpsi"></div></div><div class="formula">GPSI = (E + I + D/maceración) × A   ·   rango 0–72</div>
+  ${eidBlock("gpsi", "genital", 800, { d: "Descamación / maceración" })}</div>
+  <div class="card"><div class="card-h"><h3>s-PGA-G · Static PGA for Genitalia</h3></div><p class="small muted">Escala estática de 6 puntos, estándar regulatorio en ensayos. Integra eritema, infiltración de los bordes y brillo/maceración sin calcular superficie.</p>${levelCards("spgag", sixPoint("genital"), "genital", 820)}
+  <p class="note">Suele acompañarse del GPSS (Genital Psoriasis Symptoms Scale), cuestionario del paciente sobre prurito, dolor, escozor y ardor.</p></div></div>
+  </section>`;
+
+  /* ---------- Resumen ---------- */
+  h += `<section class="panel" id="sec-summary" data-sec="summary">
+  <div class="phead"><div class="intro"><span class="eyebrow">Informe</span><h2>Resumen y clasificación de la gravedad</h2>
+  <p>Combina un índice de intensidad/extensión (PASI, BSA, PGA), la calidad de vida (DLQI) y las localizaciones especiales, como recomiendan la AEDV y NICE.</p></div></div>
+  <div class="grid2"><div class="card"><div class="card-h"><h3>Puntuaciones</h3></div><div class="tablewrap"><table class="sumtable"><thead><tr><th>Escala</th><th>Valor</th><th>Interpretación</th></tr></thead><tbody data-out="sumTable"></tbody></table></div></div>
+  <div class="card"><div class="card-h"><h3>Criterios clínicos adicionales</h3></div><div class="checks">
+  ${[["systemic", "Requiere o ha requerido tratamiento sistémico (clásico, biológico o fototerapia)"], ["erythro", "Psoriasis eritrodérmica"], ["gpp", "Psoriasis pustulosa generalizada"], ["lpp", "Psoriasis pustulosa localizada con limitación funcional o psicológica"], ["special", "Afectación de áreas expuestas, palmas, plantas, genitales, cuero cabelludo, uñas o placas resistentes con repercusión funcional o psicológica"], ["psa", "Artritis psoriásica asociada"], ["topfail", "Fracaso del tratamiento tópico"]].map(([k, t]) => `<label><input type="checkbox" id="crit-${k}" data-path="crit.${k}" data-bool="1"><span>${t}</span></label>`).join("")}
+  </div><p class="note" data-out="specialHint"></p></div></div>
+  <div class="grid2" data-out="verdicts"></div>
+  <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><button type="button" class="btn primary" id="copyBtn">Copiar texto</button></div><textarea class="out" id="sumText" readonly aria-label="Resumen en texto"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
+  </section>`;
+  M.innerHTML = h;
+}
+
+/* ============================================================
+   Actualización de la interfaz
+   ============================================================ */
+let current = "pasi";
+function show(k) {
+  current = k;
+  $$("section.panel").forEach(s => s.hidden = s.dataset.sec !== k);
+  $$(".navbtn").forEach(b => b.setAttribute("aria-current", b.dataset.go === k ? "true" : "false"));
+  try { localStorage.setItem(STORE + "-tab", k); } catch (_) { }
+}
+const out = (key, html) => $$(`[data-out="${key}"]`).forEach(el => { if (el.tagName === "TBODY" || el.classList.contains("grid2") || /<\w/.test(html)) el.innerHTML = html; else el.textContent = html; });
+const sevOut = (key, [lv, txt]) => $$(`[data-sevout="${key}"]`).forEach(el => { el.dataset.sev = lv; el.textContent = txt; });
+const chip = (k, txt, lv) => { const c = $(`[data-chip="${k}"]`); if (c) { c.textContent = txt; c.dataset.sev = lv; } };
+
+function syncControls() {
+  $$("[data-path][data-val]").forEach(b => { const v = getP(S, b.dataset.path); b.setAttribute("aria-pressed", v != null && String(v) === b.dataset.val ? "true" : "false"); });
+  $$("input[data-path]").forEach(inp => {
+    if (document.activeElement === inp && inp.type !== "range") return;
+    const v = getP(S, inp.dataset.path);
+    if (inp.dataset.bool) inp.checked = !!v; else inp.value = v == null ? (inp.type === "range" ? 0 : "") : (typeof v === "number" && inp.type !== "range" ? String(v).replace(".", ",") : String(v));
+  });
+}
+
+function update() {
+  const C = calc();
+  save();
+  syncControls();
+  $("#exampleBanner").hidden = !S.example;
+
+  /* BSA */
+  out("bsa", fmt(C.bsa)); sevOut("bsa", sevBSA(C.bsa));
+  BSA_REGIONS.forEach(r => { const v = +S.bsa[r.k] || 0, p = Math.min(100, v / r.max * 100); const b = $(`[data-bar="${r.k}"]`); if (b) b.style.width = p + "%"; out("bsaPct." + r.k, fmt(p, 0) + " %");
+    $$(`.bm-r[data-region="${r.k}"]`).forEach(el => { el.style.fill = p > 0 ? `color-mix(in srgb, var(--lesion) ${Math.round(18 + p * .82)}%, var(--body))` : ""; }); });
+  chip("bsa", fmt(C.bsa) + " %", sevBSA(C.bsa)[0]);
+
+  /* PASI */
+  PASI_REGIONS.forEach(r => {
+    const o = S.pasi[r.k];
+    out("pasiReg." + r.k, fmt(C.pasiReg[r.k]));
+    out("pasiForm." + r.k, `(${o.e}+${o.i}+${o.d}) × ${o.a} × ${String(r.w).replace(".", ",")}`);
+    ["e", "i", "d"].forEach(p => out(`pasi.${r.k}.${p}`, `${o[p]} · ${INT_LABELS[o[p]]}`));
+    out(`pasi.${r.k}.a`, `grado ${o.a} · ${AREA_GRADES[o.a][1]}`);
+    const pv = $(`[data-prev="pasi.${r.k}"]`); if (pv) pv.innerHTML = lesionSVG({ e: o.e, i: o.i, d: o.d, site: r.k === "head" ? "scalp" : "skin", seed: r.seed, w: 150, h: 110});
+  });
+  out("pasi", fmt(C.pasi)); sevOut("pasi", sevPASI(C.pasi)); chip("pasi", fmt(C.pasi), sevPASI(C.pasi)[0]);
+  if (C.pasiBase) {
+    const imp = C.pasiImp, hits = [50, 75, 90, 100].map(t => `<span class="sevpill" data-sev="${imp >= t ? 1 : 0}">PASI ${t} ${imp >= t ? "alcanzado" : "no"}</span>`).join(" ");
+    out("pasiResp", `<p style="margin:6px 0">Mejoría respecto al basal: <b class="mono">${imp >= 0 ? fmt(imp, 0) + " %" : "empeoramiento " + fmt(-imp, 0) + " %"}</b> (PASI ${fmt(C.pasiBase)} → ${fmt(C.pasi)})</p><div style="display:flex;gap:6px;flex-wrap:wrap">${hits}</div>`);
+  } else out("pasiResp", `<p class="muted">Introduce el PASI basal para calcular la respuesta.</p>`);
+
+  /* PGA */
+  const ver = S.pga.ver;
+  $$("[data-pga]").forEach(el => el.hidden = el.dataset.pga !== ver);
+  out("pgaRef", ver === "dyn" ? "Valora el cambio respecto a la visita basal." : PGA_SCALES[ver].ref);
+  if (ver === "dyn") { const v = S.pga.dyn; out("pga", v == null ? "—" : (v > 0 ? "+" + v : String(v))); sevOut("pga", v == null ? [0, "Sin valorar"] : [v >= 3 ? 1 : v >= 0 ? 2 : 3, PGA_DYN.find(x => x[0] === v)[1]]); out("pgaBsa", ""); chip("pga", v == null ? "—" : (v > 0 ? "+" + v : String(v)), v == null ? 0 : v >= 3 ? 1 : v >= 0 ? 2 : 3); }
+  else { const v = S.pga[ver]; const max = PGA_SCALES[ver].levels.length - 1; out("pga", v == null ? "—" : String(v)); $$('[data-out="pga"]').forEach(el => el.nextElementSibling && (el.nextElementSibling.textContent = "/ " + max)); sevOut("pga", sevPGA(ver, v)); out("pgaBsa", v == null ? "" : `PGA × BSA = ${fmt(v * C.bsa)}`); chip("pga", v == null ? "—" : v + "/" + max, sevPGA(ver, v)[0]); }
+
+  /* DLQI */
+  S.dlqi.forEach((v, k) => { const q = $(`[data-q="${k}"]`); if (q) q.classList.toggle("unanswered", v === null); });
+  out("dlqi", C.dlqi == null ? "—" : String(C.dlqi)); sevOut("dlqi", sevDLQI(C.dlqi)); out("dlqiAns", `${C.dlqiAns}/10 preguntas respondidas`);
+  chip("dlqi", C.dlqi == null ? "—" : C.dlqi + "/30", sevDLQI(C.dlqi)[0]);
+
+  /* Picor */
+  out("itch", C.itch == null ? "—" : fmt(C.itch)); out("itchBig", C.itch == null ? "—" : fmt(C.itch)); sevOut("itch", sevItch(C.itch)); chip("itch", C.itch == null ? "—" : fmt(C.itch) + "/10", sevItch(C.itch)[0]);
+
+  /* NAPSI */
+  $("#feetCard").hidden = !S.napsi.feet;
+  S.napsi.nails.forEach((x, k) => { const el = $(`[data-nailsvg="${k}"]`); if (el) el.innerHTML = nailSVG({ m: x.m, b: x.b, seed: k + 1 }); out("nail." + k, `${x.m + x.b}/8`); });
+  out("napsi", String(C.napsi)); $$('[data-out="napsi"]').forEach(el => el.nextElementSibling && (el.nextElementSibling.textContent = "/ " + C.napsiMax));
+  sevOut("napsi", sevFrac(C.napsi, C.napsiMax)); out("napsiDet", `${C.napsiNails} uña(s) afectada(s)`);
+  out("napsiHands", `Subtotal ${C.napsiHands}/80`); out("napsiFeetOut", C.napsiFeet == null ? "" : `Subtotal ${C.napsiFeet}/80`);
+  chip("napsi", C.napsi + "/" + C.napsiMax, sevFrac(C.napsi, C.napsiMax)[0]);
+
+  /* PSSI */
+  ["e", "i", "d"].forEach(p => out("pssi." + p, `${S.pssi[p]} · ${INT_LABELS[S.pssi[p]]}`)); out("pssi.a", `grado ${S.pssi.a} · ${AREA_GRADES[S.pssi.a][1]}`);
+  $(`[data-prev="pssi"]`).innerHTML = lesionSVG({ ...S.pssi, site: "scalp", seed: 500, w: 120, h: 86 });
+  out("pssi", fmt(C.pssi)); sevOut("pssi", sevFrac(C.pssi, 72)); out("sspgaTxt", S.sspga == null ? "" : `ss-PGA ${S.sspga} · ${sevSix(S.sspga)[1]}`);
+  chip("pssi", fmt(C.pssi), sevFrac(C.pssi, 72)[0]);
+
+  /* PPASI */
+  const P = S.ppasi;
+  $$("[data-ppmode]").forEach(el => el.hidden = el.dataset.ppmode !== P.mode);
+  $$("[data-dlabel]").forEach(el => el.textContent = P.pust ? "Pústulas" : "Descamación");
+  out("ppFormula", P.mode === "grouped" ? "PPASI = 0,4 × (E+I+D)palmas × A + 0,6 × (E+I+D)plantas × A   ·   rango 0–72" : "PPASI = 0,2 × palma D + 0,2 × palma I + 0,3 × planta D + 0,3 × planta I   ·   rango 0–72");
+  const W = { palms: .4, soles: .6, palmR: .2, palmL: .2, soleR: .3, soleL: .3 };
+  Object.keys(W).forEach(k => { const o = P[k]; const pv = $(`[data-prev="ppasi.${k}"]`); if (pv) pv.innerHTML = lesionSVG({ e: o.e, i: o.i, d: P.pust ? 0 : o.d, pust: P.pust ? o.d : 0, site: "palm", seed: 600 + k.length, w: 120, h: 86 }); out(`ppSub.${k}`, fmt(W[k] * sumEID(o) * o.a)); ["e", "i", "d"].forEach(p => out(`ppasi.${k}.${p}`, `${o[p]} · ${INT_LABELS[o[p]]}`)); out(`ppasi.${k}.a`, `grado ${o.a} · ${AREA_GRADES[o.a][1]}`); });
+  // las miniaturas del tercer parámetro cambian con la variante pustulosa
+  if (P.pust !== lastPust) { lastPust = P.pust; Object.keys(W).forEach(k => { const row = $(`[data-path="ppasi.${k}.d"]`)?.parentElement; if (row) row.outerHTML = imgRow(`ppasi.${k}.d`, "d", "palm", 600 + k.length * 7 + 100, { pust: P.pust }); }); syncControls(); }
+  out("ppasi", fmt(C.ppasi)); sevOut("ppasi", sevFrac(C.ppasi, 72)); out("pppgaTxt", S.pppga == null ? "" : `pp-PGA ${S.pppga} · ${sevSix(S.pppga)[1]}`);
+  chip("ppasi", fmt(C.ppasi), sevFrac(C.ppasi, 72)[0]);
+
+  /* Genital */
+  ["e", "i", "d"].forEach(p => out("gpsi." + p, `${S.gpsi[p]} · ${INT_LABELS[S.gpsi[p]]}`)); out("gpsi.a", `grado ${S.gpsi.a} · ${AREA_GRADES[S.gpsi.a][1]}`);
+  $(`[data-prev="gpsi"]`).innerHTML = lesionSVG({ ...S.gpsi, site: "genital", seed: 800, w: 120, h: 86 });
+  out("gpsi", fmt(C.gpsi)); sevOut("gpsi", sevFrac(C.gpsi, 72));
+  out("spgag", S.spgag == null ? "—" : String(S.spgag)); sevOut("spgag", sevSix(S.spgag));
+  const gLv = Math.max(sevFrac(C.gpsi, 72)[0], S.spgag == null ? 0 : sevSix(S.spgag)[0]);
+  chip("genital", `${fmt(C.gpsi)} · ${S.spgag == null ? "—" : S.spgag}`, gLv);
+
+  summary(C);
+}
+let lastPust = false;
+
+function summary(C) {
+  const rows = [];
+  const pgaTxt = S.pga.ver === "dyn" ? (S.pga.dyn == null ? "—" : (S.pga.dyn > 0 ? "+" : "") + S.pga.dyn) : (S.pga[S.pga.ver] == null ? "—" : S.pga[S.pga.ver] + "/" + (PGA_SCALES[S.pga.ver].levels.length - 1));
+  const pgaSev = S.pga.ver === "dyn" ? (S.pga.dyn == null ? "Sin valorar" : PGA_DYN.find(x => x[0] === S.pga.dyn)[1]) : sevPGA(S.pga.ver, S.pga[S.pga.ver])[1];
+  rows.push(["g", "Escalas generales"]);
+  rows.push(["BSA", fmt(C.bsa) + " %", sevBSA(C.bsa)[1]]);
+  rows.push(["PASI", fmt(C.pasi) + " / 72", sevPASI(C.pasi)[1] + (C.pasiBase ? ` · mejoría ${fmt(C.pasiImp, 0)} % vs basal ${fmt(C.pasiBase)}` : "")]);
+  rows.push(["PGA (" + (S.pga.ver === "iga5" ? "IGA 0–4" : S.pga.ver === "pga7" ? "estático 0–6" : "dinámico") + ")", pgaTxt, pgaSev + (C.pgaBsa != null && S.pga.ver !== "dyn" ? ` · PGA×BSA ${fmt(C.pgaBsa)}` : "")]);
+  rows.push(["DLQI", C.dlqi == null ? "—" : C.dlqi + " / 30", sevDLQI(C.dlqi)[1] + (C.dlqiAns && C.dlqiAns < 10 ? ` (${C.dlqiAns}/10 respondidas)` : "")]);
+  rows.push(["EVA picor", C.itch == null ? "—" : fmt(C.itch) + " / 10", sevItch(C.itch)[1]]);
+  rows.push(["g", "Localizaciones especiales"]);
+  rows.push(["NAPSI", C.napsi + " / " + C.napsiMax, `${C.napsiNails} uña(s) afectada(s)` + (S.napsi.feet ? ` · manos ${C.napsiHands}, pies ${C.napsiFeet}` : " · solo manos")]);
+  rows.push(["PSSI", fmt(C.pssi) + " / 72", S.sspga != null ? `ss-PGA ${S.sspga} (${sevSix(S.sspga)[1]})` : sevFrac(C.pssi, 72)[1]]);
+  rows.push(["PPASI" + (S.ppasi.pust ? " (pustulosa)" : ""), fmt(C.ppasi) + " / 72", S.pppga != null ? `pp-PGA ${S.pppga} (${sevSix(S.pppga)[1]})` : sevFrac(C.ppasi, 72)[1]]);
+  rows.push(["GPSI", fmt(C.gpsi) + " / 72", sevFrac(C.gpsi, 72)[1]]);
+  rows.push(["s-PGA-G", S.spgag == null ? "—" : S.spgag + " / 5", sevSix(S.spgag)[1]]);
+  out("sumTable", rows.map(r => r[0] === "g" ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` : `<tr><td><b>${r[0]}</b></td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join(""));
+
+  const cr = S.crit, sp = C.specialAreas;
+  out("specialHint", sp.length ? `Detectada afectación de: ${sp.join(", ")}. Marca el criterio de áreas especiales si hay repercusión funcional o psicológica.` : "No se ha registrado afectación de localizaciones especiales.");
+  // AEDV
+  const aedv = [];
+  if (C.pasi > 10) aedv.push(`PASI ${fmt(C.pasi)} > 10`);
+  if (C.bsa > 10) aedv.push(`BSA ${fmt(C.bsa)} % > 10`);
+  if (C.dlqi != null && C.dlqi > 10) aedv.push(`DLQI ${C.dlqi} > 10`);
+  if (cr.systemic) aedv.push("Tratamiento sistémico actual o previo");
+  if (cr.erythro) aedv.push("Eritrodermia (grave)");
+  if (cr.gpp) aedv.push("Pustulosa generalizada (grave)");
+  if (cr.lpp) aedv.push("Pustulosa localizada con limitación (grave)");
+  if (cr.special) aedv.push("Áreas especiales con repercusión");
+  if (cr.psa) aedv.push("Artritis psoriásica");
+  const grave = cr.erythro || cr.gpp || cr.lpp;
+  const aedvTxt = aedv.length ? (grave ? "Psoriasis grave" : "Psoriasis moderada-grave") : "Psoriasis leve";
+  // AAD
+  const aadSpecial = sp.length > 0 || cr.special, aadEmo = C.dlqi != null && C.dlqi > 10, aadItch = C.itch != null && C.itch >= 7;
+  let aad = C.bsa > 10 || aadSpecial || aadEmo || aadItch ? "Grave" : C.bsa >= 3 ? "Moderada" : C.bsa > 0 ? "Leve" : "Sin afectación cutánea registrada";
+  const aadWhy = [C.bsa > 10 && `BSA ${fmt(C.bsa)} % > 10`, C.bsa >= 3 && C.bsa <= 10 && `BSA ${fmt(C.bsa)} % (3–10)`, C.bsa > 0 && C.bsa < 3 && `BSA ${fmt(C.bsa)} % < 3`, aadSpecial && "Afectación de áreas especiales", aadEmo && "Repercusión emocional importante (DLQI > 10)", aadItch && "Prurito intenso (EVA ≥ 7)"].filter(Boolean);
+  // IPC
+  const ipc = [C.bsa > 10 && `BSA ${fmt(C.bsa)} % > 10`, aadSpecial && "Afectación de áreas especiales", cr.topfail && "Fracaso del tratamiento tópico"].filter(Boolean);
+  const v = (lv, title, h, items, foot) => `<div class="verdict" data-sev="${lv}"><span class="eyebrow">${title}</span><h3>${h}</h3>${items.length ? `<ul>${items.map(x => `<li>${x}</li>`).join("")}</ul>` : `<p class="small" style="color:var(--muted)">Ningún criterio cumplido.</p>`}${foot ? `<p class="small" style="color:var(--muted);margin-top:4px">${foot}</p>` : ""}</div>`;
+  out("verdicts", v(aedv.length ? 3 : 1, "AEDV · Daudén et al. 2016", aedvTxt, aedv, aedv.length ? "Las formas moderadas y graves son subsidiarias de tratamiento sistémico." : "")
+    + v(aad === "Grave" ? 3 : aad === "Moderada" ? 2 : aad === "Leve" ? 1 : 0, "AAD-NPF · Menter et al. 2019", "Psoriasis " + aad.toLowerCase(), aadWhy, "Repercusión emocional y prurito estimados a partir de DLQI y EVA.")
+    + v(ipc.length ? 3 : 1, "International Psoriasis Council", ipc.length ? "Candidato a tratamiento sistémico" : "Candidato a tratamiento tópico", ipc, ""));
+  const noData = C.bsa === 0 && C.pasi === 0 && C.dlqi == null && !aedv.length;
+  chip("summary", noData ? "—" : aedv.length ? (grave ? "Grave" : "Mod-grave") : "Leve", noData ? 0 : aedv.length ? 3 : 1);
+
+  const L = [];
+  L.push(`EVALUACIÓN DE PSORIASIS — ${S.patient.name || "Paciente"} — ${S.patient.date || ""}`);
+  rows.forEach(r => { if (r[0] === "g") L.push("", r[1].toUpperCase()); else L.push(`- ${r[0]}: ${r[1]} (${r[2]})`); });
+  L.push("", "CLASIFICACIÓN", `- AEDV: ${aedvTxt}${aedv.length ? " [" + aedv.join("; ") + "]" : ""}`, `- AAD-NPF: ${aad}${aadWhy.length ? " [" + aadWhy.join("; ") + "]" : ""}`, `- IPC: ${ipc.length ? "candidato a tratamiento sistémico [" + ipc.join("; ") + "]" : "candidato a tratamiento tópico"}`);
+  if (cr.psa) L.push("- Artritis psoriásica asociada");
+  $("#sumText").value = L.join("\n");
+}
+
+/* ============================================================
+   Eventos
+   ============================================================ */
+function parseVal(path, raw) {
+  if (path === "pga.ver" || path === "ppasi.mode") return raw;
+  if (raw === "np") return "np";
+  return raw.includes(".") ? parseFloat(raw) : parseInt(raw, 10);
+}
+document.addEventListener("click", e => {
+  const go = e.target.closest("[data-go]"); if (go) { show(go.dataset.go); window.scrollTo({ top: 0 }); return; }
+  const st = e.target.closest("[data-step]");
+  if (st) { const r = BSA_REGIONS.find(x => x.k === st.dataset.step); S.bsa[r.k] = Math.max(0, Math.min(r.max, (+S.bsa[r.k] || 0) + parseFloat(st.dataset.d))); S.example = false; update(); return; }
+  const reg = e.target.closest(".bm-r");
+  if (reg) { const k = reg.dataset.region, row = $("#row-" + k); const inp = $("#bsa-" + k); if (row) { row.classList.add("flash"); setTimeout(() => row.classList.remove("flash"), 900); } if (inp) { inp.focus(); inp.select(); } return; }
+  const b = e.target.closest("[data-path][data-val]");
+  if (b) {
+    const p = b.dataset.path, v = parseVal(p, b.dataset.val);
+    const cur = getP(S, p);
+    // pulsar de nuevo una escala de selección única la deja sin valorar
+    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|itch)$/.test(p);
+    setP(S, p, nullable && String(cur) === String(v) ? null : v);
+    S.example = false; update();
+  }
+});
+document.addEventListener("input", e => {
+  const inp = e.target.closest("input[data-path]"); if (!inp) return;
+  const p = inp.dataset.path;
+  if (inp.dataset.bool) setP(S, p, inp.checked);
+  else if (inp.dataset.num) { const n = parseFloat(inp.value.replace(",", ".")); setP(S, p, isFinite(n) ? Math.max(0, Math.min(+inp.dataset.num, n)) : 0); }
+  else if (inp.type === "range") setP(S, p, parseFloat(inp.value));
+  else setP(S, p, inp.value);
+  if (!p.startsWith("patient")) S.example = false;
+  update();
+});
+$("#btnExample").addEventListener("click", () => { S = exampleState(); update(); });
+let resetArmed = false;
+$("#btnReset").addEventListener("click", ev => {
+  const btn = ev.currentTarget;
+  if (!resetArmed) { resetArmed = true; btn.textContent = "¿Vaciar todo? Pulsa de nuevo"; setTimeout(() => { resetArmed = false; btn.textContent = "Nueva evaluación"; }, 3500); return; }
+  resetArmed = false; btn.textContent = "Nueva evaluación"; S = emptyState(); update(); show("bsa");
+});
+$("#patientForm").addEventListener("submit", e => e.preventDefault());
+
+/* ============================================================
+   Arranque
+   ============================================================ */
+buildNav(); buildMain();
+$("#bsaToPasi").addEventListener("click", () => {
+  const b = S.bsa;
+  const pct = { head: b.head / 9 * 100, arms: (b.armR + b.armL) / 18 * 100, trunk: (b.trunkA + b.trunkP) / 36 * 100, legs: (b.legR + b.legL + b.perineum) / 37 * 100 };
+  PASI_REGIONS.forEach(r => S.pasi[r.k].a = grade(pct[r.k]));
+  S.example = false; update(); show("pasi");
+});
+$("#copyBtn").addEventListener("click", () => {
+  const ta = $("#sumText"), msg = $("#copyMsg");
+  const fallback = () => { ta.focus(); ta.select(); msg.textContent = "Texto seleccionado: pulsa Ctrl+C (o ⌘+C) para copiarlo."; };
+  try { navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = "Copiado al portapapeles."; }, fallback); } catch (_) { fallback(); }
+});
+lastPust = false;
+
+let startTab = "pasi"; try { startTab = localStorage.getItem(STORE + "-tab") || (location.hash.slice(1) || "pasi"); } catch (_) { }
+if (location.hash && SECTIONS.some(s => s.k === location.hash.slice(1))) startTab = location.hash.slice(1);
+if (!SECTIONS.some(s => s.k === startTab)) startTab = "pasi";
+update(); show(startTab);
+</script>
+<script>
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); }); }
+</script>
+</body>
+</html>
