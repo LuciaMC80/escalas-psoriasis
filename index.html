@@ -232,6 +232,32 @@ textarea.out{width:100%;min-height:160px;font-family:var(--f-mono);font-size:.8r
   .region .preview svg{width:110px}
   .nrs{grid-template-columns:repeat(6,minmax(0,1fr))}
 }
+.print-only{display:none}
+@media print{
+  @page{size:A4;margin:13mm 14mm}
+  :root{color-scheme:light;padding:0!important}
+  body{background:#fff!important;color:#111!important;padding:0!important;font-size:10pt;line-height:1.35}
+  body > *:not(#printReport){display:none!important}
+  #printReport{display:block!important}
+  .pr-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:10px}
+  .pr-head h1{font-size:15pt;margin:0}
+  .pr-head .pr-meta{text-align:right;font-size:9pt}
+  .pr-sec{break-inside:avoid;margin:0 0 10px}
+  .pr-sec h2{font-size:10.5pt;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #999;padding-bottom:2px;margin:0 0 5px}
+  .pr-sec table{width:100%;border-collapse:collapse;font-size:9pt}
+  .pr-sec th,.pr-sec td{border:1px solid #bbb;padding:3px 6px;text-align:left;vertical-align:top}
+  .pr-sec th{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pr-sec td.n{font-family:var(--f-mono);white-space:nowrap}
+  .pr-class{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .pr-class div{border:1px solid #888;border-radius:4px;padding:5px 7px;font-size:9pt}
+  .pr-class b{display:block;font-size:10pt}
+  .pr-imgs{display:flex;gap:6px;flex-wrap:wrap}
+  .pr-imgs figure{margin:0;width:23%;font-size:8pt;text-align:center}
+  .pr-imgs svg{width:100%;height:auto;border:1px solid #ccc;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pr-sign{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px;font-size:9pt}
+  .pr-sign div{border-top:1px solid #111;padding-top:3px}
+  .pr-foot{margin-top:12px;font-size:7.5pt;color:#555}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <style>
@@ -252,6 +278,7 @@ img{max-width:100%}
     <div class="field"><label for="p-name">Paciente / NHC</label><input id="p-name" data-path="patient.name" placeholder="Nombre o identificador" size="20"></div>
     <div class="field"><label for="p-date">Fecha de visita</label><input id="p-date" type="date" data-path="patient.date"></div>
     <button type="button" class="btn" id="btnExample">Cargar ejemplo</button>
+    <button type="button" class="btn" id="btnPrint">Imprimir informe</button>
     <button type="button" class="btn danger" id="btnReset">Nueva evaluación</button>
   </form>
 </header>
@@ -261,6 +288,7 @@ img{max-width:100%}
   <nav class="side" id="nav" aria-label="Escalas"></nav>
   <main id="main"></main>
 </div>
+<div id="printReport" class="print-only" aria-hidden="true"></div>
 <p class="disclaimer">Herramienta de apoyo para el cálculo de índices. Las imágenes son ilustraciones esquemáticas recreadas por ordenador con fines orientativos y no sustituyen a la exploración ni al juicio clínico. Fuentes: Grupo de Psoriasis AEDV (2016); Daudén et al. JEADV 2016; NICE CG153; Menter et al. JAAD 2019; Strober et al. JAAD 2020 (IPC); Rich &amp; Scher JAAD 2003 (NAPSI); Langley et al. 2015 (IGA); Finlay &amp; Khan 1994 (DLQI © Cardiff University); Reich et al. 2012 (NRS prurito). Los datos se guardan solo en este navegador.</p>
 
 <script>
@@ -800,7 +828,7 @@ function buildMain() {
   ${[["systemic", "Requiere o ha requerido tratamiento sistémico (clásico, biológico o fototerapia)"], ["erythro", "Psoriasis eritrodérmica"], ["gpp", "Psoriasis pustulosa generalizada"], ["lpp", "Psoriasis pustulosa localizada con limitación funcional o psicológica"], ["special", "Afectación de áreas expuestas, palmas, plantas, genitales, cuero cabelludo, uñas o placas resistentes con repercusión funcional o psicológica"], ["psa", "Artritis psoriásica asociada"], ["topfail", "Fracaso del tratamiento tópico"]].map(([k, t]) => `<label><input type="checkbox" id="crit-${k}" data-path="crit.${k}" data-bool="1"><span>${t}</span></label>`).join("")}
   </div><p class="note" data-out="specialHint"></p></div></div>
   <div class="grid2" data-out="verdicts"></div>
-  <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><button type="button" class="btn primary" id="copyBtn">Copiar texto</button></div><textarea class="out" id="sumText" readonly aria-label="Resumen en texto"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
+  <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="printBtn">Imprimir informe</button><button type="button" class="btn primary" id="copyBtn">Copiar texto</button></div></div><p class="note" id="printNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir el informe.</p><textarea class="out" id="sumText" readonly aria-label="Resumen en texto"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
   </section>`;
   M.innerHTML = h;
 }
@@ -908,6 +936,7 @@ function update() {
 }
 let lastPust = false;
 
+let LAST = null;
 function summary(C) {
   const rows = [];
   const pgaTxt = S.pga.ver === "dyn" ? (S.pga.dyn == null ? "—" : (S.pga.dyn > 0 ? "+" : "") + S.pga.dyn) : (S.pga[S.pga.ver] == null ? "—" : S.pga[S.pga.ver] + "/" + (PGA_SCALES[S.pga.ver].levels.length - 1));
@@ -960,6 +989,7 @@ function summary(C) {
   L.push("", "CLASIFICACIÓN", `- AEDV: ${aedvTxt}${aedv.length ? " [" + aedv.join("; ") + "]" : ""}`, `- AAD-NPF: ${aad}${aadWhy.length ? " [" + aadWhy.join("; ") + "]" : ""}`, `- IPC: ${ipc.length ? "candidato a tratamiento sistémico [" + ipc.join("; ") + "]" : "candidato a tratamiento tópico"}`);
   if (cr.psa) L.push("- Artritis psoriásica asociada");
   $("#sumText").value = L.join("\n");
+  LAST = { C, rows, aedvTxt, aedv, aad, aadWhy, ipc };
 }
 
 /* ============================================================
@@ -1015,6 +1045,66 @@ $("#bsaToPasi").addEventListener("click", () => {
   PASI_REGIONS.forEach(r => S.pasi[r.k].a = grade(pct[r.k]));
   S.example = false; update(); show("pasi");
 });
+
+/* ============================================================
+   Informe imprimible
+   ============================================================ */
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+function buildPrint() {
+  update();
+  const { C, rows, aedvTxt, aedv, aad, aadWhy, ipc } = LAST;
+  const tbl = (head, body) => `<table><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${body.map(r => `<tr>${r.map((c, k) => `<td${k > 0 && /^[-+\d.,\s\/%—]+$/.test(String(c)) ? ' class="n"' : ""}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  const sec = (t, html) => `<section class="pr-sec"><h2>${t}</h2>${html}</section>`;
+  const eidRow = (name, o, extra = "") => [name, o.e, o.i, o.d, `${o.a} (${AREA_GRADES[o.a][1]})`, extra];
+  const today = new Date().toLocaleDateString("es-ES");
+  const vdate = S.patient.date ? new Date(S.patient.date + "T00:00").toLocaleDateString("es-ES") : "—";
+  let h = `<header class="pr-head"><div><h1>Informe de evaluación de psoriasis</h1><div>Paciente / NHC: <b>${esc(S.patient.name || "—")}</b></div></div><div class="pr-meta">Fecha de visita: <b>${vdate}</b><br>Impreso: ${today}</div></header>`;
+
+  h += sec("Clasificación de la gravedad", `<div class="pr-class">
+    <div>AEDV<b>${aedvTxt}</b>${aedv.length ? aedv.join("; ") : "Ningún criterio de moderada-grave"}</div>
+    <div>AAD-NPF<b>Psoriasis ${aad.toLowerCase()}</b>${aadWhy.join("; ") || "—"}</div>
+    <div>International Psoriasis Council<b>${ipc.length ? "Candidato a tratamiento sistémico" : "Candidato a tratamiento tópico"}</b>${ipc.join("; ") || "Ningún criterio de sistémico"}</div></div>`);
+
+  h += sec("Puntuaciones", tbl(["Escala", "Valor", "Interpretación"], rows.filter(r => r[0] !== "g").map(r => [r[0], r[1], r[2]])));
+
+  if (C.bsa > 0) h += sec("BSA por región (regla de la palma)", tbl(["Región", "Palmas (%)", "% de la región"], BSA_REGIONS.filter(r => +S.bsa[r.k] > 0).map(r => [r.n, fmt(+S.bsa[r.k]), fmt(+S.bsa[r.k] / r.max * 100, 0) + " %"]).concat([["<b>Total</b>", "<b>" + fmt(C.bsa) + " %</b>", ""]])));
+
+  if (C.pasi > 0) {
+    h += sec("PASI por región", tbl(["Región", "Eritema", "Induración", "Descamación", "Área", "Subtotal"], PASI_REGIONS.map(r => eidRow(r.n, S.pasi[r.k], fmt(C.pasiReg[r.k])))
+      .concat([["<b>PASI total</b>", "", "", "", "", "<b>" + fmt(C.pasi) + "</b>"]]))
+      + (C.pasiBase ? `<p>PASI basal ${fmt(C.pasiBase)} → mejoría ${fmt(C.pasiImp, 0)} % · ${[50, 75, 90, 100].filter(t => C.pasiImp >= t).map(t => "PASI " + t).join(", ") || "sin respuesta PASI 50"}</p>` : "")
+      + `<div class="pr-imgs">${PASI_REGIONS.filter(r => sumEID(S.pasi[r.k]) > 0).map(r => { const o = S.pasi[r.k]; return `<figure>${lesionSVG({ e: o.e, i: o.i, d: o.d, site: r.k === "head" ? "scalp" : "skin", seed: r.seed, w: 150, h: 100 })}<figcaption>${r.n} · E${o.e} I${o.i} D${o.d}</figcaption></figure>`; }).join("")}</div>`);
+  }
+
+  if (C.dlqiAns) h += sec("DLQI · respuestas", tbl(["#", "Pregunta (últimos 7 días)", "Puntos"], S.dlqi.map((v, k) => [k + 1, DLQI_Q[k], v === null ? "—" : v === "np" ? "No procede (0)" : v])));
+
+  if (C.napsi > 0) {
+    const names = k => `${(k >= 10 ? TOES : FINGERS)[k % 5]} ${(k % 10) < 5 ? "D" : "I"}${k >= 10 ? " (pie)" : ""}`;
+    h += sec("NAPSI · uñas afectadas", tbl(["Uña", "Matriz", "Lecho", "Total"], S.napsi.nails.slice(0, S.napsi.feet ? 20 : 10).map((x, k) => [names(k), x.m, x.b, x.m + x.b]).filter(r => r[3] > 0).concat([["<b>NAPSI</b>", "", "", `<b>${C.napsi} / ${C.napsiMax}</b>`]])));
+  }
+
+  const sp = [];
+  if (C.pssi > 0 || S.sspga != null) sp.push(eidRow("Cuero cabelludo (PSSI)", S.pssi, fmt(C.pssi) + (S.sspga != null ? ` · ss-PGA ${S.sspga}` : "")));
+  if (C.ppasi > 0 || S.pppga != null) {
+    const P = S.ppasi, keys = P.mode === "grouped" ? [["palms", "Palmas"], ["soles", "Plantas"]] : [["palmR", "Palma D"], ["palmL", "Palma I"], ["soleR", "Planta D"], ["soleL", "Planta I"]];
+    keys.forEach(([k, n]) => sp.push(eidRow(n + " (PPASI" + (P.pust ? ", pústulas" : "") + ")", P[k], "")));
+    sp.push(["<b>PPASI total</b>", "", "", "", "", fmt(C.ppasi) + (S.pppga != null ? ` · pp-PGA ${S.pppga}` : "")]);
+  }
+  if (C.gpsi > 0 || S.spgag != null) sp.push(eidRow("Genital (GPSI)", S.gpsi, fmt(C.gpsi) + (S.spgag != null ? ` · s-PGA-G ${S.spgag}` : "")));
+  if (sp.length) h += sec("Localizaciones especiales", tbl(["Localización", "Eritema", "Induración", "Desc./masc.", "Área", "Puntuación"], sp));
+
+  const crit = [["systemic", "Tratamiento sistémico actual o previo"], ["erythro", "Eritrodermia"], ["gpp", "Pustulosa generalizada"], ["lpp", "Pustulosa localizada con limitación"], ["special", "Áreas especiales con repercusión"], ["psa", "Artritis psoriásica"], ["topfail", "Fracaso del tratamiento tópico"]].filter(([k]) => S.crit[k]).map(x => x[1]);
+  if (crit.length) h += sec("Criterios clínicos adicionales", "<p>" + crit.join(" · ") + "</p>");
+
+  h += `<div class="pr-sign"><div>Facultativo/a</div><div>Firma</div></div>`;
+  h += `<p class="pr-foot">Escalas: PASI y BSA (AEDV 2016), PGA (${S.pga.ver === "iga5" ? "IGA 0–4, Langley 2015" : S.pga.ver === "pga7" ? "estático 0–6, AEDV" : "dinámico"}), DLQI (© Finlay y Khan, Cardiff University), NAPSI (Rich y Scher 2003). Clasificación: Daudén et al. JEADV 2016; Menter et al. JAAD 2019; Strober et al. JAAD 2020. Las imágenes son ilustraciones esquemáticas orientativas.</p>`;
+  $("#printReport").innerHTML = h;
+}
+let framed = true; try { framed = window.self !== window.top; } catch (_) { framed = true; }
+function doPrint() { buildPrint(); window.print(); }
+window.addEventListener("beforeprint", buildPrint);
+$$("#btnPrint, #printBtn").forEach(b => { if (framed) b.hidden = true; else b.addEventListener("click", doPrint); });
+if (framed) { const n = $("#printNote"); if (n) n.hidden = false; }
 $("#copyBtn").addEventListener("click", () => {
   const ta = $("#sumText"), msg = $("#copyMsg");
   const fallback = () => { ta.focus(); ta.select(); msg.textContent = "Texto seleccionado: pulsa Ctrl+C (o ⌘+C) para copiarlo."; };
