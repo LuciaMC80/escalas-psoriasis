@@ -313,61 +313,105 @@ function flake(x, y, s, R) {
 
 function lesionSVG(o) {
   const { e = 0, i = 0, d = 0, site = "skin", seed = 7, w = 120, h = 90, profile = false, hyper = false, pust = 0, size = 1, fissure = false } = o;
-  const u = ++UID, R = rng(seed * 97 + 13), sk = SKIN[site];
-  const cx = w / 2, cy = h / 2 - (profile ? 6 : 0), rx = w * .33 * size, ry = h * .3 * size;
+  const u = ++UID, R = rng(seed * 97 + 13), sk = SKIN[site], ts = (seed * 7 + 3) % 997;
+  const cx = w / 2, cy = h / 2 - (profile ? 6 : 0), rx = w * .3 * size, ry = h * .27 * size;
+  const lerp = (arr, x) => { x = Math.max(0, Math.min(arr.length - 1, x)); const k = Math.min(arr.length - 2, Math.floor(x)); return arr[k] + (arr[k + 1] - arr[k]) * (x - k); };
+  const glossy = site === "genital", palm = site === "palm";
+  const box = `filterUnits="userSpaceOnUse" x="0" y="0" width="${w}" height="${h}"`;
+
+  // Forma policíclica: placa principal + lóbulos confluentes + pápulas satélite
+  const main = blob(cx, cy, rx, ry, R, 22, .26);
+  const shapes = [main.d];
+  const nl = 1 + Math.floor(R() * 3);
+  for (let k = 0; k < nl; k++) {
+    const a = R() * Math.PI * 2, f = .5 + R() * .25;
+    shapes.push(blob(cx + Math.cos(a) * rx * f, cy + Math.sin(a) * ry * f, rx * (.32 + R() * .2), ry * (.32 + R() * .2), R, 14, .3).d);
+  }
+  const sats = [];
+  const ns = size < 1 || e < 1 ? 0 : Math.floor(R() * 3);
+  for (let k = 0; k < ns; k++) {
+    const a = R() * Math.PI * 2, f = 1.25 + R() * .35, r = 1.3 + R() * 1.4;
+    sats.push(`<ellipse cx="${(cx + Math.cos(a) * rx * f).toFixed(1)}" cy="${(cy + Math.sin(a) * ry * f).toFixed(1)}" rx="${r.toFixed(1)}" ry="${(r * .85).toFixed(1)}"/>`);
+  }
+  const plaque = shapes.map(p => `<path d="${p}"/>`).join("") + sats.join("");
+
+  const active = e > 0 || i > 0 || d > 0 || pust > 0;
+  const base = e > 0 ? ramp(ERY, e) : mix(sk[1], ERY[1], .35);
+  // escama: más cobertura, placas más grandes y más relieve cuanto mayor es D
+  const cover = lerp([0, .22, .45, .7, .9], d);
+  const freq = lerp([.36, .36, .21, .13, .085], d);
+  const thr = .58 - cover * .22, A = 5.5, B = .5 - A * thr;
+  const scaleOp = lerp([0, .62, .85, .95, 1], d);
+  const rim = lerp([4, 3.4, 2.6, 1.9, 1.3], d) * (w / 120);
+  const scCol = palm ? [.86, .82, .7] : site === "scalp" ? [.88, .86, .8] : [.86, .86, .86];
+  const film = lerp([0, .12, .22, .3, .38], d);
+
   let s = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><defs>`;
   s += `<linearGradient id="sk${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${sk[0]}"/><stop offset="1" stop-color="${sk[1]}"/></linearGradient>`;
-  s += `<radialGradient id="dm${u}" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity="${(.04 + i * .07).toFixed(2)}"/><stop offset="1" stop-color="#3a0a10" stop-opacity="${(.02 + i * .06).toFixed(2)}"/></radialGradient>`;
-  s += `<filter id="sh${u}" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="${(.5 + i * 1.1).toFixed(1)}" stdDeviation="${(.5 + i * .7).toFixed(1)}" flood-color="#4a1d16" flood-opacity="${(.1 + i * .1).toFixed(2)}"/></filter>`;
-  s += `<filter id="sf${u}"><feGaussianBlur stdDeviation="${i < .5 ? 1.6 : .3}"/></filter>`;
+  // textura de piel (poros y moteado)
+  s += `<filter id="tx${u}" ${box}><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="${ts}"/><feColorMatrix type="matrix" values="0 0 0 0 .45  0 0 0 0 .28  0 0 0 0 .2  0 0 0 -1.6 1.05"/><feComposite in2="SourceGraphic" operator="in"/></filter>`;
+  s += `<filter id="mo${u}" ${box}><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="${ts + 5}"/><feColorMatrix type="matrix" values="0 0 0 0 .55  0 0 0 0 .3  0 0 0 0 .25  0 0 0 .5 -.18"/><feComposite in2="SourceGraphic" operator="in"/></filter>`;
+  // halo eritematoso perilesional
+  s += `<filter id="ha${u}" ${box}><feGaussianBlur stdDeviation="${(2 + e * .8).toFixed(1)}"/></filter>`;
+  // relieve de la placa (induración) con luz desde arriba a la izquierda
+  if (i >= .5) {
+    s += `<filter id="rl${u}" ${box}><feGaussianBlur in="SourceAlpha" stdDeviation="${(1.4 + i * .5).toFixed(1)}" result="b"/>`
+      + `<feDiffuseLighting in="b" surfaceScale="${(i * 1.5).toFixed(1)}" diffuseConstant="1" lighting-color="#fff" result="l"><feDistantLight azimuth="225" elevation="52"/></feDiffuseLighting>`
+      + `<feComposite in="SourceGraphic" in2="l" operator="arithmetic" k1=".8" k2=".36" k3="0" k4="0" result="lit"/><feComposite in="lit" in2="SourceAlpha" operator="in" result="pl"/>`
+      + `<feGaussianBlur in="SourceAlpha" stdDeviation="${(.6 + i * .5).toFixed(1)}" result="sb"/><feOffset in="sb" dx="${(i * .35).toFixed(1)}" dy="${(.4 + i * .6).toFixed(1)}" result="so"/><feFlood flood-color="#4a1712" flood-opacity="${(.08 + i * .045).toFixed(2)}"/><feComposite in2="so" operator="in" result="sh"/>`
+      + `<feMerge><feMergeNode in="sh"/><feMergeNode in="pl"/></feMerge></filter>`;
+  } else {
+    s += `<filter id="rl${u}" ${box}><feGaussianBlur stdDeviation="1.1"/></filter>`;
+  }
+  // punteado vascular dentro de la placa
+  s += `<filter id="vs${u}" ${box}><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="2" seed="${ts + 9}"/><feColorMatrix type="matrix" values="0 0 0 0 .45  0 0 0 0 .05  0 0 0 0 .1  2.6 0 0 0 -1.25"/><feComposite in2="SourceAlpha" operator="in"/></filter>`;
+  // escama plateada en mosaico, confinada al centro (deja ver el ribete rojo)
+  s += `<filter id="sc${u}" ${box}><feMorphology in="SourceAlpha" operator="erode" radius="${rim.toFixed(1)}" result="core"/><feGaussianBlur in="core" stdDeviation="1.3" result="cs"/>`
+    + `<feTurbulence type="fractalNoise" baseFrequency="${freq.toFixed(3)}" numOctaves="4" seed="${ts + 2}" result="n"/>`
+    + `<feColorMatrix in="n" type="matrix" values="0 .14 0 0 ${scCol[0]}  0 .14 0 0 ${scCol[1]}  0 .14 0 0 ${scCol[2]}  ${A} 0 0 0 ${B.toFixed(2)}" result="fl"/>`
+    + `<feComposite in="fl" in2="cs" operator="in" result="sc"/>`
+    + `<feGaussianBlur in="sc" stdDeviation=".7" result="sb"/><feDiffuseLighting in="sb" surfaceScale="${(.8 + d * .7).toFixed(1)}" diffuseConstant="1" lighting-color="#fff" result="sl"><feDistantLight azimuth="225" elevation="66"/></feDiffuseLighting>`
+    + `<feComposite in="sc" in2="sl" operator="arithmetic" k1=".55" k2=".55" k3="0" k4="0" result="lit"/><feComposite in="lit" in2="sc" operator="in" result="sl2"/>`
+    + (d >= 2 ? `<feTurbulence type="turbulence" baseFrequency="${(freq * 1.5).toFixed(3)}" numOctaves="2" seed="${ts + 4}" result="tc"/><feColorMatrix in="tc" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -14 0 0 0 ${(1.1 + (d - 2) * .25).toFixed(2)}" result="ck"/><feComposite in="sl2" in2="ck" operator="out"/>` : "") + `</filter>`;
+  s += `<filter id="fm${u}" ${box}><feMorphology in="SourceGraphic" operator="erode" radius="${(rim * .8).toFixed(1)}"/><feGaussianBlur stdDeviation="1.6"/></filter>`;
+  // brillo de la semimucosa
+  s += `<filter id="gl${u}" ${box}><feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="b"/><feSpecularLighting in="b" surfaceScale="${(2 + i).toFixed(1)}" specularConstant=".9" specularExponent="22" lighting-color="#fff" result="sp"><feDistantLight azimuth="225" elevation="48"/></feSpecularLighting><feComposite in="sp" in2="SourceAlpha" operator="in"/></filter>`;
   s += `<clipPath id="cl${u}"><rect width="${w}" height="${h}" rx="6"/></clipPath></defs><g clip-path="url(#cl${u})">`;
-  s += `<rect width="${w}" height="${h}" fill="url(#sk${u})"/>`;
-  // textura de la piel
-  for (let k = 0; k < 26; k++) s += `<circle cx="${(R() * w).toFixed(1)}" cy="${(R() * h).toFixed(1)}" r="${(.3 + R() * .5).toFixed(2)}" fill="#a87a60" opacity=".25"/>`;
-  if (site === "palm") for (let k = 0; k < 3; k++) { const y0 = h * (.25 + k * .22) + R() * 6; s += `<path d="M-5,${y0.toFixed(1)} Q${w * .45},${(y0 + 14 - R() * 20).toFixed(1)} ${w + 5},${(y0 - 8 + R() * 10).toFixed(1)}" fill="none" stroke="#bf8f73" stroke-width="1.1" opacity=".6"/>`; }
-  if (site === "genital") s += `<path d="M${w * .15},-5 Q${w * .55},${h * .5} ${w * .35},${h + 5}" fill="none" stroke="#9c6656" stroke-width="7" opacity=".28" stroke-linecap="round"/><path d="M${w * .15},-5 Q${w * .55},${h * .5} ${w * .35},${h + 5}" fill="none" stroke="#7a4a3d" stroke-width="1.2" opacity=".45"/>`;
 
-  const B = blob(cx, cy, rx, ry, R);
-  if (hyper) s += `<path d="${B.d}" fill="#b98d70" opacity=".35" filter="url(#sf${u})"/>`;
-  const active = e > 0 || i > 0 || d > 0 || pust > 0;
+  // piel
+  s += `<rect width="${w}" height="${h}" fill="url(#sk${u})"/><rect width="${w}" height="${h}" fill="#000" filter="url(#mo${u})"/><rect width="${w}" height="${h}" fill="#000" opacity=".5" filter="url(#tx${u})"/>`;
+  if (palm) for (let k = 0; k < 4; k++) { const y0 = h * (.18 + k * .2) + R() * 6; s += `<path d="M-5,${y0.toFixed(1)} Q${w * .45},${(y0 + 14 - R() * 20).toFixed(1)} ${w + 5},${(y0 - 8 + R() * 10).toFixed(1)}" fill="none" stroke="#b9876b" stroke-width="${(.8 + R() * .6).toFixed(1)}" opacity=".55"/>`; }
+  if (glossy) s += `<path d="M${w * .15},-5 Q${w * .55},${h * .5} ${w * .35},${h + 5}" fill="none" stroke="#9c6656" stroke-width="8" opacity=".28" stroke-linecap="round"/><path d="M${w * .15},-5 Q${w * .55},${h * .5} ${w * .35},${h + 5}" fill="none" stroke="#6e4034" stroke-width="1.2" opacity=".5"/>`;
+
+  if (hyper) s += `<g fill="#b48467" opacity=".32" filter="url(#ha${u})">${plaque}</g>`;
   if (active) {
-    const base = e > 0 ? ramp(ERY, e) : mix(sk[1], ERY[1], .35);
-    const glossy = site === "genital";
-    if (i < .5) {
-      s += `<path d="${B.d}" fill="${base}" opacity=".92" filter="url(#sf${u})"/>`;
-    } else {
-      s += `<g filter="url(#sh${u})"><path d="${B.d}" fill="${base}" stroke="${mix(base, "#3d0a14", .18 + i * .06)}" stroke-width="${(.3 + i * .45).toFixed(2)}"/></g>`;
-      s += `<path d="${B.d}" fill="url(#dm${u})"/>`;
-    }
+    if (e >= 1.5) s += `<g fill="${ERY[1]}" opacity="${(.12 + e * .06).toFixed(2)}" filter="url(#ha${u})">${plaque}</g>`;
+    s += `<g fill="${base}" filter="url(#rl${u})">${plaque}</g>`;
+    if (e >= 1) s += `<g opacity="${(.25 + e * .1).toFixed(2)}" filter="url(#vs${u})">${plaque}</g>`;
     if (glossy) {
-      for (let k = 0; k < 2 + Math.round(e); k++) { const [x, y] = B.inside(.6); s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(3 + R() * 5).toFixed(1)}" ry="${(1 + R() * 1.5).toFixed(1)}" fill="#fff" opacity=".35" transform="rotate(${(-30 + R() * 20).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
-      // maceración (sustituye a la escama en semimucosa)
-      for (let k = 0; k < Math.round(d * 4); k++) { const [x, y] = B.inside(.9); s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(2 + R() * 4 + d).toFixed(1)}" ry="${(1 + R() * 1.4).toFixed(1)}" fill="#f4ece4" opacity="${(.35 + d * .1).toFixed(2)}" transform="rotate(${(55 + R() * 30).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
+      s += `<g opacity="${(.45 + e * .08).toFixed(2)}" filter="url(#gl${u})">${plaque}</g>`;
+      for (let k = 0; k < Math.round(d * 4); k++) { const [x, y] = main.inside(.9); s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(2 + R() * 4 + d).toFixed(1)}" ry="${(1 + R() * 1.4).toFixed(1)}" fill="#f4ece4" opacity="${(.3 + d * .1).toFixed(2)}" transform="rotate(${(55 + R() * 30).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
     } else if (d > 0) {
-      if (d >= 2.5) { const B2 = blob(cx, cy, rx * .78, ry * .74, R, 11, .35); s += `<path d="${B2.d}" fill="#efe8dc" opacity="${(.18 + (d - 2.5) * .35).toFixed(2)}"/>`; }
-      const n = Math.round([0, 12, 30, 60, 110][Math.floor(d)] + ([0, 12, 30, 60, 110][Math.ceil(d)] - [0, 12, 30, 60, 110][Math.floor(d)]) * (d - Math.floor(d)));
-      const sz = .9 + d * .9;
-      for (let k = 0; k < n; k++) {
-        const [x, y] = B.inside(.88);
-        s += `<polygon points="${flake(x, y, sz * (.6 + R() * .8), R)}" fill="${site === "scalp" ? "#f5efe0" : "#f7f4ee"}" opacity="${(.5 + d * .1 + R() * .1).toFixed(2)}" stroke="#cdbfae" stroke-width="${d >= 3.5 ? .5 : .25}"/>`;
-      }
+      s += `<g fill="#f1eeea" opacity="${film.toFixed(2)}" filter="url(#fm${u})">${plaque}</g>`;
+      s += `<g opacity="${scaleOp.toFixed(2)}" filter="url(#sc${u})">${plaque}</g>`;
     }
     if (pust > 0) {
-      for (let k = 0; k < [0, 5, 12, 22, 36][Math.round(pust)]; k++) { const [x, y] = B.inside(.9); const r = 1.2 + R() * 1.4; s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r + .8).toFixed(1)}" fill="#f8f0cf" opacity=".9"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#e2c454"/>`; }
+      const np = [0, 5, 12, 22, 36][Math.round(pust)];
+      for (let k = 0; k < np; k++) { const [x, y] = main.inside(.95); const r = 1.1 + R() * 1.3; if (R() < .3) { s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r + .3).toFixed(1)}" fill="#8a5a3a" opacity=".55"/>`; continue; } s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r + .9).toFixed(1)}" fill="#f6e9c4" opacity=".85"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#ddb942"/><circle cx="${(x - r * .35).toFixed(1)}" cy="${(y - r * .35).toFixed(1)}" r="${(r * .35).toFixed(1)}" fill="#fff8dc" opacity=".8"/>`; }
     }
-    if (fissure) s += `<path d="M${cx - rx * .5},${cy + 2} l8,-3 l6,4 l9,-5 l7,3" fill="none" stroke="#6d1622" stroke-width="1.3" stroke-linecap="round"/>`;
+    if (fissure) s += `<path d="M${(cx - rx * .55).toFixed(1)},${(cy + 2).toFixed(1)} l7,-3 l5,4 l8,-5 l6,3 l7,-2" fill="none" stroke="#5f1018" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
   if (site === "scalp") {
-    for (let k = 0; k < 85; k++) {
-      const x = R() * (w + 30) - 15, y = R() * (h + 20) - 20, L = 16 + R() * 26, a = (-62 + R() * 22) * Math.PI / 180;
-      s += `<path d="M${x.toFixed(1)},${y.toFixed(1)} q${(Math.cos(a) * L * .5 + 3).toFixed(1)},${(-Math.sin(a) * L * .5).toFixed(1)} ${(Math.cos(a) * L).toFixed(1)},${(-Math.sin(a) * L + 4).toFixed(1)}" fill="none" stroke="#3a2820" stroke-width="${(.5 + R() * .6).toFixed(2)}" opacity=".85"/>`;
+    for (let k = 0; k < 95; k++) {
+      const x = R() * (w + 30) - 15, y = R() * (h + 20) - 20, L = 16 + R() * 28, a = (-62 + R() * 22) * Math.PI / 180;
+      s += `<path d="M${x.toFixed(1)},${y.toFixed(1)} q${(Math.cos(a) * L * .5 + 3).toFixed(1)},${(-Math.sin(a) * L * .5).toFixed(1)} ${(Math.cos(a) * L).toFixed(1)},${(-Math.sin(a) * L + 4).toFixed(1)}" fill="none" stroke="${R() < .15 ? "#5a4032" : "#33241c"}" stroke-width="${(.45 + R() * .6).toFixed(2)}" opacity=".88"/>`;
     }
   }
   if (profile) {
-    const base = h - 5, hg = i * 2.4, sk2 = sk[1], top = ramp(ERY, Math.max(e, 1));
-    s += `<rect x="0" y="${h - 16}" width="${w}" height="16" fill="#fbf7f3" opacity=".92"/>`;
-    s += `<path d="M0,${base} L${w * .25},${base} C${w * .33},${base} ${w * .33},${base - hg} ${w * .4},${base - hg} L${w * .6},${base - hg} C${w * .67},${base - hg} ${w * .67},${base} ${w * .75},${base} L${w},${base} L${w},${h} L0,${h}Z" fill="${sk2}"/>`;
-    if (hg > 0) s += `<path d="M${w * .25},${base} C${w * .33},${base} ${w * .33},${base - hg} ${w * .4},${base - hg} L${w * .6},${base - hg} C${w * .67},${base - hg} ${w * .67},${base} ${w * .75},${base}" fill="none" stroke="${top}" stroke-width="1.6"/>`;
+    const bl = h - 5, hg = i * 2.4, top = ramp(ERY, Math.max(e, 1));
+    s += `<rect x="0" y="${h - 16}" width="${w}" height="16" fill="#fbf7f3" opacity=".94"/>`;
+    s += `<path d="M0,${bl} L${w * .25},${bl} C${w * .33},${bl} ${w * .33},${bl - hg} ${w * .4},${bl - hg} L${w * .6},${bl - hg} C${w * .67},${bl - hg} ${w * .67},${bl} ${w * .75},${bl} L${w},${bl} L${w},${h} L0,${h}Z" fill="${sk[1]}"/>`;
+    if (hg > 0) s += `<path d="M${w * .25},${bl} C${w * .33},${bl} ${w * .33},${bl - hg} ${w * .4},${bl - hg} L${w * .6},${bl - hg} C${w * .67},${bl - hg} ${w * .67},${bl} ${w * .75},${bl}" fill="none" stroke="${top}" stroke-width="1.6"/>`;
   }
   return s + `</g></svg>`;
 }
@@ -418,12 +462,9 @@ const PASI_REGIONS = [
 ];
 const BSA_REGIONS = [
   { k: "head", n: "Cabeza y cuello", max: 9 },
-  { k: "armR", n: "Miembro superior derecho", max: 9 },
-  { k: "armL", n: "Miembro superior izquierdo", max: 9 },
-  { k: "trunkA", n: "Tronco, cara anterior", max: 18 },
-  { k: "trunkP", n: "Tronco, cara posterior", max: 18 },
-  { k: "legR", n: "Miembro inferior derecho", max: 18 },
-  { k: "legL", n: "Miembro inferior izquierdo", max: 18 },
+  { k: "arms", n: "Brazos (ambos)", max: 18, sub: "9 % cada uno" },
+  { k: "trunk", n: "Tronco completo", max: 36, sub: "anterior 18 % + posterior 18 %" },
+  { k: "legs", n: "Piernas (ambas)", max: 36, sub: "18 % cada una" },
   { k: "perineum", n: "Periné", max: 1 },
 ];
 const PGA_SCALES = {
@@ -505,7 +546,7 @@ function emptyState() {
 }
 function exampleState() {
   const s = emptyState(); s.example = true; s.patient.name = "Ejemplo · Paciente 0001";
-  Object.assign(s.bsa, { head: 1, armR: 2, armL: 2, trunkA: 2, trunkP: 2, legR: 1.5, legL: 1.5, perineum: 0 });
+  Object.assign(s.bsa, { head: 1, arms: 4, trunk: 4, legs: 3, perineum: 0 });
   s.pasi.head = { a: 2, e: 2, i: 2, d: 3 }; s.pasi.arms = { a: 2, e: 3, i: 2, d: 2 }; s.pasi.trunk = { a: 1, e: 2, i: 2, d: 2 }; s.pasi.legs = { a: 1, e: 3, i: 3, d: 3 };
   s.pasiBase = "18.4";
   s.pga.iga5 = 3; s.pga.base = "";
@@ -518,6 +559,8 @@ function exampleState() {
 const STORE = "psoriasis-escalas-v1";
 let S;
 try { const raw = localStorage.getItem(STORE); S = raw ? Object.assign(emptyState(), JSON.parse(raw)) : exampleState(); } catch (_) { S = exampleState(); }
+// convierte evaluaciones guardadas con el BSA por lados (versión anterior) al BSA agrupado
+(function migrateBSA() { const b = S.bsa || {}; if ("armR" in b || "trunkA" in b || "legR" in b) { const n = k => +b[k] || 0; S.bsa = { head: n("head"), arms: n("armR") + n("armL"), trunk: n("trunkA") + n("trunkP"), legs: n("legR") + n("legL"), perineum: n("perineum") }; } })();
 function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (_) { } }
 
 /* ============================================================
@@ -609,8 +652,7 @@ function buildNav() {
 function bodyMap() {
   const fig = (cx, view) => {
     const isF = view === "front";
-    const [aL, aR, lL, lR] = isF ? ["armR", "armL", "legR", "legL"] : ["armL", "armR", "legL", "legR"];
-    const T = isF ? "trunkA" : "trunkP";
+    const [aL, aR, lL, lR, T] = ["arms", "arms", "legs", "legs", "trunk"];
     let g = `<g>`;
     g += `<rect class="bm-r" data-region="${lL}" x="${cx - 22}" y="120" width="19" height="120" rx="8"/>`;
     g += `<rect class="bm-r" data-region="${lR}" x="${cx + 3}" y="120" width="19" height="120" rx="8"/>`;
@@ -620,7 +662,6 @@ function bodyMap() {
     g += `<path class="bm-r" data-region="head" d="M${cx - 6},36 h12 v10 h-12z M${cx},8 a13,15 0 1,1 -0.01,0z"/>`;
     if (isF) g += `<path class="bm-r" data-region="perineum" d="M${cx - 6},119 L${cx + 6},119 L${cx},131 Z"/>`;
     g += `<text class="bm-lbl" x="${cx}" y="256" text-anchor="middle">${isF ? "ANTERIOR" : "POSTERIOR"}</text>`;
-    g += `<text class="bm-lbl" x="${cx - 52}" y="70" text-anchor="middle">${isF ? "D" : "I"}</text><text class="bm-lbl" x="${cx + 52}" y="70" text-anchor="middle">${isF ? "I" : "D"}</text>`;
     return g + `</g>`;
   };
   return `<svg viewBox="0 0 300 262" role="img" aria-label="Mapa corporal: pulsa una región para editarla">${fig(78, "front")}${fig(222, "back")}</svg>`;
@@ -632,12 +673,12 @@ function buildMain() {
   /* ---------- BSA ---------- */
   h += `<section class="panel" id="sec-bsa" data-sec="bsa">
   <div class="phead"><div class="intro"><span class="eyebrow">Escala general · extensión</span><h2>BSA · Superficie corporal afectada</h2>
-  <p>Regla de la palma: la palma del paciente con los dedos juntos equivale al 1 % de su superficie corporal. Anota cuántas palmas ocupan las lesiones en cada región; los límites siguen la regla del 9 de Wallace (válida en adultos).</p></div>
+  <p>Regla de la palma: la palma del paciente con los dedos juntos equivale al 1 % de su superficie corporal. Anota cuántas palmas ocupan las lesiones en cada región. Brazos, tronco y piernas se cuentan en conjunto; los límites siguen la regla del 9 de Wallace (válida en adultos).</p></div>
   ${scorebox({ label: "BSA total", key: "bsa" }, "% SC")}</div>
   <div class="bsa-wrap"><div class="card bodymap"><div class="card-h"><h3>Mapa corporal</h3><span class="small muted">Pulsa una región para ir a su campo</span></div>${bodyMap()}
   <p class="note">No incluyas zonas de discromía residual. En formas en gotas o pequeñas placas el BSA tiende a sobreestimarse.</p></div>
   <div class="card"><div class="card-h"><h3>Palmas por región</h3><span class="small muted">1 palma = 1 %</span></div><div class="steplist">`
-    + BSA_REGIONS.map(r => `<div class="steprow" id="row-${r.k}"><div class="rn">${r.n}<small>máx. ${r.max} %</small><div class="bar"><i data-bar="${r.k}" style="width:0"></i></div></div>
+    + BSA_REGIONS.map(r => `<div class="steprow" id="row-${r.k}"><div class="rn">${r.n}<small>máx. ${r.max} %${r.sub ? " · " + r.sub : ""}</small><div class="bar"><i data-bar="${r.k}" style="width:0"></i></div></div>
     <div class="stepper"><button type="button" data-step="${r.k}" data-d="-0.5" aria-label="Restar media palma">−</button><input id="bsa-${r.k}" inputmode="decimal" data-path="bsa.${r.k}" data-num="${r.max}" aria-label="${r.n}, palmas"><button type="button" data-step="${r.k}" data-d="0.5" aria-label="Sumar media palma">+</button></div>
     <span class="mono small muted" data-out="bsaPct.${r.k}"></span></div>`).join("")
     + `</div><button type="button" class="btn" id="bsaToPasi">Usar estos datos para la extensión del PASI</button></div></div>
@@ -970,7 +1011,7 @@ $("#patientForm").addEventListener("submit", e => e.preventDefault());
 buildNav(); buildMain();
 $("#bsaToPasi").addEventListener("click", () => {
   const b = S.bsa;
-  const pct = { head: b.head / 9 * 100, arms: (b.armR + b.armL) / 18 * 100, trunk: (b.trunkA + b.trunkP) / 36 * 100, legs: (b.legR + b.legL + b.perineum) / 37 * 100 };
+  const pct = { head: b.head / 9 * 100, arms: b.arms / 18 * 100, trunk: b.trunk / 36 * 100, legs: (b.legs + b.perineum) / 37 * 100 };
   PASI_REGIONS.forEach(r => S.pasi[r.k].a = grade(pct[r.k]));
   S.example = false; update(); show("pasi");
 });
