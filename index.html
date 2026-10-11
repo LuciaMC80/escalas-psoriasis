@@ -569,7 +569,7 @@ function emptyState() {
     gpsi: zeroEID(), spgag: null,
     dlqi: Array(10).fill(null),
     itch: null,
-    crit: { systemic: false, erythro: false, gpp: false, lpp: false, special: false, psa: false, topfail: false },
+    crit: { systemic: false, erythro: false, gpp: false, lpp: false, face: false, psa: false, topfail: false },
   };
 }
 function exampleState() {
@@ -619,11 +619,11 @@ function calc() {
   C.dlqiAns = S.dlqi.filter(v => v !== null).length;
   C.dlqi = C.dlqiAns ? S.dlqi.reduce((a, v) => a + (v === null || v === "np" ? 0 : +v), 0) : null;
   C.itch = S.itch;
-  C.specialAreas = [C.napsi > 0 && "uñas", C.pssi > 0 && "cuero cabelludo", C.ppasi > 0 && "palmas/plantas", (C.gpsi > 0 || (S.spgag || 0) > 0) && "genitales"].filter(Boolean);
+  C.specialAreas = [C.napsi > 0 && "uñas", C.pssi > 0 && "cuero cabelludo", C.ppasi > 0 && "palmas/plantas", (C.gpsi > 0 || (S.spgag || 0) > 0) && "genitales", S.crit.face && "cara / zonas expuestas"].filter(Boolean);
   return C;
 }
-function sevPASI(v) { return v <= 0 ? [0, "Sin lesiones"] : v < 5 ? [1, "Leve"] : v <= 10 ? [2, "Moderada"] : [3, "Grave"]; }
-function sevBSA(v) { return v <= 0 ? [0, "Sin afectación"] : v < 3 ? [1, "Leve (AAD)"] : v <= 10 ? [2, "Moderada (AAD)"] : [3, "Grave (AAD)"]; }
+function sevPASI(v) { return v <= 0 ? [0, "Sin lesiones"] : v < 10 ? [1, "Leve (<10)"] : [3, "Moderada-grave (≥10)"]; }
+function sevBSA(v) { return v <= 0 ? [0, "Sin afectación"] : v < 10 ? [1, "Leve (<10 %)"] : [3, "Moderada-grave (≥10 %)"]; }
 function sevDLQI(v) { if (v == null) return [0, "Sin completar"]; return v <= 1 ? [1, "Sin efecto en la vida del paciente"] : v <= 5 ? [1, "Efecto pequeño"] : v <= 10 ? [2, "Efecto moderado"] : v <= 20 ? [3, "Efecto muy importante"] : [4, "Efecto extremadamente importante"]; }
 function sevItch(v) { if (v == null) return [0, "Sin valorar"]; return v === 0 ? [0, "Sin prurito"] : v < 4 ? [1, "Prurito leve"] : v < 7 ? [2, "Prurito moderado"] : v < 9 ? [3, "Prurito grave"] : [4, "Prurito muy grave"]; }
 function sevPGA(ver, v) { if (v == null) return [0, "Sin valorar"]; const L = PGA_SCALES[ver].levels[v]; const max = PGA_SCALES[ver].levels.length - 1; const r = v / max; return [v === 0 ? 0 : r <= .25 ? 1 : r <= .5 ? 2 : r < 1 ? 3 : 4, L.t]; }
@@ -748,7 +748,7 @@ function buildMain() {
   <p>Diez preguntas referidas a los <b>últimos 7 días</b>. Lo rellena el propio paciente en unos 2 minutos. «No procede» puntúa 0.</p></div>
   ${scorebox({ label: "DLQI", key: "dlqi" }, "/ 30", `<span class="small muted" data-out="dlqiAns"></span>`)}</div>
   <div class="qlist">` + DLQI_Q.map((q, k) => `<div class="q" data-q="${k}"><span class="qn">${k + 1}</span><span class="qt">Durante los últimos 7 días, ${q.replace(/^¿(.)/, (m, c) => "¿" + c.toLowerCase())}</span><div>${seg("dlqi." + k, (k === 6 ? DLQI_Q7 : k < 2 ? DLQI_OPTS.slice(0, 4) : DLQI_OPTS).map(([v, l]) => [v, l]))}</div></div>`).join("") + `</div>
-  <p class="note">Interpretación (Hongbo et al., 2005): 0–1 sin efecto · 2–5 pequeño · 6–10 moderado · 11–20 muy importante · 21–30 extremadamente importante. DLQI &gt;10 es criterio de psoriasis moderada-grave (AEDV). © AY Finlay, GK Khan; versiones validadas en la web de la Universidad de Cardiff.</p>
+  <p class="note">Interpretación (Hongbo et al., 2005): 0–1 sin efecto · 2–5 pequeño · 6–10 moderado · 11–20 muy importante · 21–30 extremadamente importante. DLQI ≥10 es criterio de psoriasis moderada-grave. © AY Finlay, GK Khan; versiones validadas en la web de la Universidad de Cardiff.</p>
   </section>`;
 
   /* ---------- Picor ---------- */
@@ -825,7 +825,7 @@ function buildMain() {
   <p>Combina un índice de intensidad/extensión (PASI, BSA, PGA), la calidad de vida (DLQI) y las localizaciones especiales, como recomiendan la AEDV y NICE.</p></div></div>
   <div class="grid2"><div class="card"><div class="card-h"><h3>Puntuaciones</h3></div><div class="tablewrap"><table class="sumtable"><thead><tr><th>Escala</th><th>Valor</th><th>Interpretación</th></tr></thead><tbody data-out="sumTable"></tbody></table></div></div>
   <div class="card"><div class="card-h"><h3>Criterios clínicos adicionales</h3></div><div class="checks">
-  ${[["systemic", "Requiere o ha requerido tratamiento sistémico (clásico, biológico o fototerapia)"], ["erythro", "Psoriasis eritrodérmica"], ["gpp", "Psoriasis pustulosa generalizada"], ["lpp", "Psoriasis pustulosa localizada con limitación funcional o psicológica"], ["special", "Afectación de áreas expuestas, palmas, plantas, genitales, cuero cabelludo, uñas o placas resistentes con repercusión funcional o psicológica"], ["psa", "Artritis psoriásica asociada"], ["topfail", "Fracaso del tratamiento tópico"]].map(([k, t]) => `<label><input type="checkbox" id="crit-${k}" data-path="crit.${k}" data-bool="1"><span>${t}</span></label>`).join("")}
+  ${[["systemic", "Requiere o ha requerido tratamiento sistémico (clásico, biológico o fototerapia)"], ["erythro", "Psoriasis eritrodérmica"], ["gpp", "Psoriasis pustulosa generalizada"], ["lpp", "Psoriasis pustulosa localizada con limitación funcional o psicológica"], ["face", "Afectación de cara u otras zonas expuestas (zona de alto impacto)"], ["psa", "Artritis psoriásica asociada"], ["topfail", "Fracaso del tratamiento tópico"]].map(([k, t]) => `<label><input type="checkbox" id="crit-${k}" data-path="crit.${k}" data-bool="1"><span>${t}</span></label>`).join("")}
   </div><p class="note" data-out="specialHint"></p></div></div>
   <div class="grid2" data-out="verdicts"></div>
   <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="printBtn">Imprimir informe</button><button type="button" class="btn primary" id="copyBtn">Copiar texto</button></div></div><p class="note" id="printNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir el informe.</p><textarea class="out" id="sumText" readonly aria-label="Resumen en texto"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
@@ -956,22 +956,22 @@ function summary(C) {
   out("sumTable", rows.map(r => r[0] === "g" ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` : `<tr><td><b>${r[0]}</b></td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join(""));
 
   const cr = S.crit, sp = C.specialAreas;
-  out("specialHint", sp.length ? `Detectada afectación de: ${sp.join(", ")}. Marca el criterio de áreas especiales si hay repercusión funcional o psicológica.` : "No se ha registrado afectación de localizaciones especiales.");
+  out("specialHint", sp.length ? `Zonas de alto impacto afectadas: ${sp.join(", ")}. Basta con una para clasificar la psoriasis como moderada-grave.` : "Sin afectación de zonas de alto impacto. Uñas, cuero cabelludo, palmas/plantas y genitales se detectan a partir de NAPSI, PSSI, PPASI, GPSI y s-PGA-G; la cara se marca arriba.");
   // AEDV
   const aedv = [];
-  if (C.pasi > 10) aedv.push(`PASI ${fmt(C.pasi)} > 10`);
-  if (C.bsa > 10) aedv.push(`BSA ${fmt(C.bsa)} % > 10`);
-  if (C.dlqi != null && C.dlqi > 10) aedv.push(`DLQI ${C.dlqi} > 10`);
+  if (C.pasi >= 10) aedv.push(`PASI ${fmt(C.pasi)} ≥ 10`);
+  if (C.bsa >= 10) aedv.push(`BSA ${fmt(C.bsa)} % ≥ 10`);
+  if (C.dlqi != null && C.dlqi >= 10) aedv.push(`DLQI ${C.dlqi} ≥ 10`);
+  if (sp.length) aedv.push(`Zonas de alto impacto: ${sp.join(", ")}`);
   if (cr.systemic) aedv.push("Tratamiento sistémico actual o previo");
   if (cr.erythro) aedv.push("Eritrodermia (grave)");
   if (cr.gpp) aedv.push("Pustulosa generalizada (grave)");
   if (cr.lpp) aedv.push("Pustulosa localizada con limitación (grave)");
-  if (cr.special) aedv.push("Áreas especiales con repercusión");
   if (cr.psa) aedv.push("Artritis psoriásica");
   const grave = cr.erythro || cr.gpp || cr.lpp;
   const aedvTxt = aedv.length ? (grave ? "Psoriasis grave" : "Psoriasis moderada-grave") : "Psoriasis leve";
   // AAD
-  const aadSpecial = sp.length > 0 || cr.special, aadEmo = C.dlqi != null && C.dlqi > 10, aadItch = C.itch != null && C.itch >= 7;
+  const aadSpecial = sp.length > 0, aadEmo = C.dlqi != null && C.dlqi > 10, aadItch = C.itch != null && C.itch >= 7;
   let aad = C.bsa > 10 || aadSpecial || aadEmo || aadItch ? "Grave" : C.bsa >= 3 ? "Moderada" : C.bsa > 0 ? "Leve" : "Sin afectación cutánea registrada";
   const aadWhy = [C.bsa > 10 && `BSA ${fmt(C.bsa)} % > 10`, C.bsa >= 3 && C.bsa <= 10 && `BSA ${fmt(C.bsa)} % (3–10)`, C.bsa > 0 && C.bsa < 3 && `BSA ${fmt(C.bsa)} % < 3`, aadSpecial && "Afectación de áreas especiales", aadEmo && "Repercusión emocional importante (DLQI > 10)", aadItch && "Prurito intenso (EVA ≥ 7)"].filter(Boolean);
   // IPC
@@ -1093,7 +1093,7 @@ function buildPrint() {
   if (C.gpsi > 0 || S.spgag != null) sp.push(eidRow("Genital (GPSI)", S.gpsi, fmt(C.gpsi) + (S.spgag != null ? ` · s-PGA-G ${S.spgag}` : "")));
   if (sp.length) h += sec("Localizaciones especiales", tbl(["Localización", "Eritema", "Induración", "Desc./masc.", "Área", "Puntuación"], sp));
 
-  const crit = [["systemic", "Tratamiento sistémico actual o previo"], ["erythro", "Eritrodermia"], ["gpp", "Pustulosa generalizada"], ["lpp", "Pustulosa localizada con limitación"], ["special", "Áreas especiales con repercusión"], ["psa", "Artritis psoriásica"], ["topfail", "Fracaso del tratamiento tópico"]].filter(([k]) => S.crit[k]).map(x => x[1]);
+  const crit = [["systemic", "Tratamiento sistémico actual o previo"], ["erythro", "Eritrodermia"], ["gpp", "Pustulosa generalizada"], ["lpp", "Pustulosa localizada con limitación"], ["face", "Afectación de cara / zonas expuestas"], ["psa", "Artritis psoriásica"], ["topfail", "Fracaso del tratamiento tópico"]].filter(([k]) => S.crit[k]).map(x => x[1]);
   if (crit.length) h += sec("Criterios clínicos adicionales", "<p>" + crit.join(" · ") + "</p>");
 
   h += `<div class="pr-sign"><div>Facultativo/a</div><div>Firma</div></div>`;
