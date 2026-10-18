@@ -155,7 +155,12 @@ section.panel[hidden]{display:none}
 .bm-r:hover{stroke:var(--teal);stroke-width:2}
 .bm-lbl{fill:var(--muted);font-size:9px;font-family:var(--f-body);font-weight:700;letter-spacing:.06em}
 .steplist{display:flex;flex-direction:column;gap:6px}
-.steprow{display:grid;grid-template-columns:minmax(0,1fr) auto 64px;gap:10px;align-items:center;padding:6px 8px;border-radius:8px}
+.steprow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 8px;border-radius:8px}
+.stephead{display:grid;grid-template-columns:minmax(0,1fr) 112px 92px;gap:10px;padding:0 8px;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.stephead span:not(:first-child){text-align:center}
+.regpct{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:0 8px 0 0;background:var(--surface);width:92px;box-sizing:border-box}
+.regpct input{width:100%;min-width:0;border:0;text-align:right;font-family:var(--f-mono);background:transparent;color:var(--ink);height:30px}
+.regpct span{font-family:var(--f-mono);color:var(--muted);font-size:.85rem}
 .steprow.flash{background:var(--teal-soft)}
 .steprow .rn{font-weight:600;font-size:.92rem}
 .steprow .rn small{display:block;font-weight:400;color:var(--muted);font-size:.76rem}
@@ -231,6 +236,9 @@ textarea.out{width:100%;min-height:160px;font-family:var(--f-mono);font-size:.8r
   .regions,.grid2{grid-template-columns:minmax(0,1fr)}
   .region .preview svg{width:110px}
   .nrs{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .steprow{grid-template-columns:auto auto;justify-content:start}
+  .steprow .rn{grid-column:1/-1}
+  .stephead{display:none}
 }
 .print-only{display:none}
 @media print{
@@ -719,10 +727,11 @@ function buildMain() {
   ${scorebox({ label: "BSA total", key: "bsa" }, "% SC")}</div>
   <div class="bsa-wrap"><div class="card bodymap"><div class="card-h"><h3>Mapa corporal</h3><span class="small muted">Pulsa una región para ir a su campo</span></div>${bodyMap()}
   <p class="note">No incluyas zonas de discromía residual. En formas en gotas o pequeñas placas el BSA tiende a sobreestimarse.</p></div>
-  <div class="card"><div class="card-h"><h3>Palmas por región</h3><span class="small muted">1 palma = 1 %</span></div><div class="steplist">`
+  <div class="card"><div class="card-h"><h3>Palmas por región</h3><span class="small muted">1 palma = 1 %</span></div>
+  <p class="small muted" style="margin:0 0 8px">Introduce las palmas (% de superficie corporal) o, si lo prefieres, el porcentaje de cada región afectado (0–100 %); el otro valor se calcula solo.</p><div class="steplist"><div class="stephead" aria-hidden="true"><span>Región</span><span>Palmas · % SC</span><span>% región</span></div>`
     + BSA_REGIONS.map(r => `<div class="steprow" id="row-${r.k}"><div class="rn">${r.n}<small>máx. ${r.max} %${r.sub ? " · " + r.sub : ""}</small><div class="bar"><i data-bar="${r.k}" style="width:0"></i></div></div>
     <div class="stepper"><button type="button" data-step="${r.k}" data-d="-0.5" aria-label="Restar media palma">−</button><input id="bsa-${r.k}" inputmode="decimal" data-path="bsa.${r.k}" data-num="${r.max}" aria-label="${r.n}, palmas"><button type="button" data-step="${r.k}" data-d="0.5" aria-label="Sumar media palma">+</button></div>
-    <span class="mono small muted" data-out="bsaPct.${r.k}"></span></div>`).join("")
+    <label class="regpct" title="Porcentaje de la región afectado (0–100 %)"><input id="bsaPct-${r.k}" inputmode="decimal" data-regpct="${r.k}" aria-label="${r.n}, porcentaje de la región afectado"><span>%</span></label></div>`).join("")
     + `</div><button type="button" class="btn" id="bsaToPasi">Usar estos datos para la extensión del PASI</button></div></div>
   </section>`;
 
@@ -888,7 +897,8 @@ function update() {
 
   /* BSA */
   out("bsa", fmt(C.bsa)); sevOut("bsa", sevBSA(C.bsa));
-  BSA_REGIONS.forEach(r => { const v = +S.bsa[r.k] || 0, p = Math.min(100, v / r.max * 100); const b = $(`[data-bar="${r.k}"]`); if (b) b.style.width = p + "%"; out("bsaPct." + r.k, fmt(p, 0) + " %");
+  BSA_REGIONS.forEach(r => { const v = +S.bsa[r.k] || 0, p = Math.min(100, v / r.max * 100); const b = $(`[data-bar="${r.k}"]`); if (b) b.style.width = p + "%";
+    const pi = $("#bsaPct-" + r.k); if (pi && document.activeElement !== pi) pi.value = fmt(p);
     $$(`.bm-r[data-region="${r.k}"]`).forEach(el => { el.style.fill = p > 0 ? `color-mix(in srgb, var(--lesion) ${Math.round(18 + p * .82)}%, var(--body))` : ""; }); });
   chip("bsa", fmt(C.bsa) + " %", sevBSA(C.bsa)[0]);
 
@@ -1049,7 +1059,11 @@ document.addEventListener("click", e => {
     S.example = false; update();
   }
 });
+document.addEventListener("focusout", e => { if (e.target.matches?.("input[data-regpct], input[data-num]")) setTimeout(update); });
 document.addEventListener("input", e => {
+  // % de la región (0–100) → palmas (% de superficie corporal)
+  const rp = e.target.closest("input[data-regpct]");
+  if (rp) { const r = BSA_REGIONS.find(x => x.k === rp.dataset.regpct); const n = parseFloat(rp.value.replace(",", ".")); const p = isFinite(n) ? Math.max(0, Math.min(100, n)) : 0; S.bsa[r.k] = Math.round(p * r.max) / 100; S.example = false; update(); return; }
   const inp = e.target.closest("input[data-path]"); if (!inp) return;
   const p = inp.dataset.path;
   if (inp.dataset.bool) setP(S, p, inp.checked);
