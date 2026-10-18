@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Escalas de Psoriasis</title>
-<meta name="description" content="Calculadora de escalas de psoriasis: BSA, PASI, PGA, DLQI, EVA del picor, NAPSI, PSSI, PPASI, GPSI y s-PGA-G.">
+<meta name="description" content="Calculadora de escalas de psoriasis: BSA, PASI, PGA, DLQI, EVA del picor, NAPSI, PSSI, PPASI, GPSI, s-PGA-G y cribado de artritis psoriásica PURE-4.">
 <meta name="theme-color" content="#b3384d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -549,6 +549,14 @@ const DLQI_Q = [
 const DLQI_OPTS = [["3", "Muchísimo"], ["2", "Bastante"], ["1", "Un poco"], ["0", "Nada"], ["np", "No procede"]];
 const DLQI_Q7 = [["3", "Sí, me lo impidió"], ["2", "No · bastante"], ["1", "No · un poco"], ["0", "No · nada"], ["np", "No procede"]];
 
+/* PURE-4 · Psoriatic arthritis UnclutteRed screening Evaluation (adaptación española, Belinchón et al. 2020) */
+const PURE4_Q = [
+  ["Signos sugestivos de dactilitis (dedo en forma de salchicha)", "¿Ha tenido alguna vez dolor e hinchazón/inflamación que afectara a todo un dedo de la mano o del pie?"],
+  ["Dolor con inflamación en el talón", "¿Ha tenido o notado alguna vez dolor en el talón al ponerse de pie por la mañana?"],
+  ["Dolor en los dos glúteos", "¿Ha tenido alguna vez dolor en el glúteo derecho o izquierdo, al mismo tiempo o por separado?"],
+  ["Dolor articular con hinchazón, antes de los 50 años", "¿Ha tenido alguna vez hinchazón o dolor en la articulación (manos, pies, rodillas o tobillos, por ejemplo)?"],
+];
+
 const FINGERS = ["Pulgar", "Índice", "Medio", "Anular", "Meñique"];
 const TOES = ["1.º dedo", "2.º dedo", "3.º dedo", "4.º dedo", "5.º dedo"];
 
@@ -569,6 +577,7 @@ function emptyState() {
     gpsi: zeroEID(), spgag: null,
     dlqi: Array(10).fill(null),
     itch: null,
+    pure4: Array(4).fill(null),
     crit: { systemic: false, erythro: false, gpp: false, lpp: false, face: false, psa: false, topfail: false },
   };
 }
@@ -582,6 +591,7 @@ function exampleState() {
   s.pssi = { e: 2, i: 2, d: 3, a: 2 }; s.sspga = 3;
   s.dlqi = [2, 2, 1, 1, 1, 0, 1, 0, "np", 1];
   s.itch = 6;
+  s.pure4 = [0, 1, 0, 0];
   return s;
 }
 const STORE = "psoriasis-escalas-v1";
@@ -619,6 +629,8 @@ function calc() {
   C.dlqiAns = S.dlqi.filter(v => v !== null).length;
   C.dlqi = C.dlqiAns ? S.dlqi.reduce((a, v) => a + (v === null || v === "np" ? 0 : +v), 0) : null;
   C.itch = S.itch;
+  C.pure4Ans = S.pure4.filter(v => v !== null).length;
+  C.pure4 = C.pure4Ans ? S.pure4.reduce((a, v) => a + (+v || 0), 0) : null;
   C.specialAreas = [C.napsi > 0 && "uñas", C.pssi > 0 && "cuero cabelludo", C.ppasi > 0 && "palmas/plantas", (C.gpsi > 0 || (S.spgag || 0) > 0) && "genitales", S.crit.face && "cara / zonas expuestas"].filter(Boolean);
   return C;
 }
@@ -626,6 +638,7 @@ function sevPASI(v) { return v <= 0 ? [0, "Sin lesiones"] : v < 10 ? [1, "Leve (
 function sevBSA(v) { return v <= 0 ? [0, "Sin afectación"] : v < 10 ? [1, "Leve (<10 %)"] : [3, "Moderada-grave (≥10 %)"]; }
 function sevDLQI(v) { if (v == null) return [0, "Sin completar"]; return v <= 1 ? [1, "Sin efecto en la vida del paciente"] : v <= 5 ? [1, "Efecto pequeño"] : v <= 10 ? [2, "Efecto moderado"] : v <= 20 ? [3, "Efecto muy importante"] : [4, "Efecto extremadamente importante"]; }
 function sevItch(v) { if (v == null) return [0, "Sin valorar"]; return v === 0 ? [0, "Sin prurito"] : v < 4 ? [1, "Prurito leve"] : v < 7 ? [2, "Prurito moderado"] : v < 9 ? [3, "Prurito grave"] : [4, "Prurito muy grave"]; }
+function sevPURE(v, ans) { if (v == null) return [0, "Sin completar"]; return v >= 1 ? [3, "Cribado positivo: valorar afectación reumatológica"] : ans < 4 ? [0, `Sin respuestas positivas (${ans}/4 respondidas)`] : [1, "Cribado negativo"]; }
 function sevPGA(ver, v) { if (v == null) return [0, "Sin valorar"]; const L = PGA_SCALES[ver].levels[v]; const max = PGA_SCALES[ver].levels.length - 1; const r = v / max; return [v === 0 ? 0 : r <= .25 ? 1 : r <= .5 ? 2 : r < 1 ? 3 : 4, L.t]; }
 function sevSix(v) { if (v == null) return [0, "Sin valorar"]; return [[0, "Aclarada"], [1, "Casi aclarada"], [1, "Leve"], [2, "Moderada"], [3, "Grave"], [4, "Muy grave"]][v]; }
 function sevFrac(v, max) { if (!v) return [0, "Sin afectación"]; const r = v / max; return r < .15 ? [1, "Afectación baja"] : r < .4 ? [2, "Afectación intermedia"] : [3, "Afectación alta"]; }
@@ -669,6 +682,7 @@ const SECTIONS = [
   { g: "Localizaciones especiales", k: "pssi", n: "PSSI", sub: "Cuero cabelludo" },
   { g: "Localizaciones especiales", k: "ppasi", n: "PPASI", sub: "Palmas y plantas" },
   { g: "Localizaciones especiales", k: "genital", n: "GPSI · s-PGA-G", sub: "Área genital" },
+  { g: "Comorbilidad", k: "pure4", n: "PURE-4", sub: "Cribado de artritis psoriásica" },
   { g: "Informe", k: "summary", n: "Resumen", sub: "Clasificación de gravedad" },
 ];
 
@@ -819,6 +833,16 @@ function buildMain() {
   <p class="note">Suele acompañarse del GPSS (Genital Psoriasis Symptoms Scale), cuestionario del paciente sobre prurito, dolor, escozor y ardor.</p></div></div>
   </section>`;
 
+  /* ---------- PURE-4 ---------- */
+  h += `<section class="panel" id="sec-pure4" data-sec="pure4">
+  <div class="phead"><div class="intro"><span class="eyebrow">Comorbilidad · cribado de artritis psoriásica</span><h2>PURE-4 · Psoriatic arthritis UnclutteRed screening Evaluation</h2>
+  <p>Cuestionario de <b>4 preguntas</b> para identificar de forma temprana a los pacientes con síntomas indicativos de artritis psoriásica. Puede rellenarlo el propio paciente o el médico durante la consulta.</p></div>
+  ${scorebox({ label: "PURE-4", key: "pure4" }, "/ 4", `<span class="small muted" data-out="pure4Ans"></span>`)}</div>
+  <div class="qlist">` + PURE4_Q.map(([t, q], k) => `<div class="q" data-pq="${k}"><span class="qn">${k + 1}</span><span class="qt"><b>${t}</b><br>${q}</span><div>${seg("pure4." + k, [["1", "Sí"], ["0", "No"]])}</div></div>`).join("") + `</div>
+  <div class="card"><div class="card-h"><h3>Interpretación</h3></div><p data-out="pure4Msg"></p>
+  <p class="note">A partir de <b>1 respuesta positiva</b>, valorar la afectación reumatológica. Con ese umbral el PURE-4 tiene una sensibilidad del 85,7 % y una especificidad del 83,6 % (Audureau et al., JEADV 2018; adaptación al español: Belinchón et al., Actas Dermosifiliogr 2020).</p></div>
+  </section>`;
+
   /* ---------- Resumen ---------- */
   h += `<section class="panel" id="sec-summary" data-sec="summary">
   <div class="phead"><div class="intro"><span class="eyebrow">Informe</span><h2>Resumen y clasificación de la gravedad</h2>
@@ -932,6 +956,13 @@ function update() {
   const gLv = Math.max(sevFrac(C.gpsi, 72)[0], S.spgag == null ? 0 : sevSix(S.spgag)[0]);
   chip("genital", `${fmt(C.gpsi)} · ${S.spgag == null ? "—" : S.spgag}`, gLv);
 
+  /* PURE-4 */
+  S.pure4.forEach((v, k) => { const q = $(`[data-pq="${k}"]`); if (q) q.classList.toggle("unanswered", v === null); });
+  const pSev = sevPURE(C.pure4, C.pure4Ans);
+  out("pure4", C.pure4 == null ? "—" : String(C.pure4)); sevOut("pure4", pSev); out("pure4Ans", `${C.pure4Ans}/4 preguntas respondidas`);
+  out("pure4Msg", C.pure4 == null ? "Responde las 4 preguntas." : C.pure4 >= 1 ? `<b>Cribado positivo</b> (${C.pure4} respuesta${C.pure4 > 1 ? "s" : ""} afirmativa${C.pure4 > 1 ? "s" : ""}): valorar la afectación reumatológica y la derivación a Reumatología.` : C.pure4Ans < 4 ? "Ninguna respuesta positiva por ahora; completa las preguntas restantes." : "<b>Cribado negativo</b>: ninguna respuesta positiva. Repetir periódicamente en el seguimiento.");
+  chip("pure4", C.pure4 == null ? "—" : C.pure4 + "/4", pSev[0]);
+
   summary(C);
 }
 let lastPust = false;
@@ -953,6 +984,8 @@ function summary(C) {
   rows.push(["PPASI" + (S.ppasi.pust ? " (pustulosa)" : ""), fmt(C.ppasi) + " / 72", S.pppga != null ? `pp-PGA ${S.pppga} (${sevSix(S.pppga)[1]})` : sevFrac(C.ppasi, 72)[1]]);
   rows.push(["GPSI", fmt(C.gpsi) + " / 72", sevFrac(C.gpsi, 72)[1]]);
   rows.push(["s-PGA-G", S.spgag == null ? "—" : S.spgag + " / 5", sevSix(S.spgag)[1]]);
+  rows.push(["g", "Comorbilidad"]);
+  rows.push(["PURE-4", C.pure4 == null ? "—" : C.pure4 + " / 4", sevPURE(C.pure4, C.pure4Ans)[1]]);
   out("sumTable", rows.map(r => r[0] === "g" ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` : `<tr><td><b>${r[0]}</b></td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join(""));
 
   const cr = S.crit, sp = C.specialAreas;
@@ -1011,7 +1044,7 @@ document.addEventListener("click", e => {
     const p = b.dataset.path, v = parseVal(p, b.dataset.val);
     const cur = getP(S, p);
     // pulsar de nuevo una escala de selección única la deja sin valorar
-    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|itch)$/.test(p);
+    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|pure4\.\d|itch)$/.test(p);
     setP(S, p, nullable && String(cur) === String(v) ? null : v);
     S.example = false; update();
   }
@@ -1083,6 +1116,8 @@ function buildPrint() {
     h += sec("NAPSI · uñas afectadas", tbl(["Uña", "Matriz", "Lecho", "Total"], S.napsi.nails.slice(0, S.napsi.feet ? 20 : 10).map((x, k) => [names(k), x.m, x.b, x.m + x.b]).filter(r => r[3] > 0).concat([["<b>NAPSI</b>", "", "", `<b>${C.napsi} / ${C.napsiMax}</b>`]])));
   }
 
+  if (C.pure4Ans) h += sec("PURE-4 · cribado de artritis psoriásica", tbl(["#", "Pregunta", "Respuesta"], S.pure4.map((v, k) => [k + 1, PURE4_Q[k][0], v === null ? "—" : +v ? "Sí" : "No"]).concat([["", "<b>" + sevPURE(C.pure4, C.pure4Ans)[1] + "</b>", `<b>${C.pure4} / 4</b>`]])));
+
   const sp = [];
   if (C.pssi > 0 || S.sspga != null) sp.push(eidRow("Cuero cabelludo (PSSI)", S.pssi, fmt(C.pssi) + (S.sspga != null ? ` · ss-PGA ${S.sspga}` : "")));
   if (C.ppasi > 0 || S.pppga != null) {
@@ -1097,7 +1132,7 @@ function buildPrint() {
   if (crit.length) h += sec("Criterios clínicos adicionales", "<p>" + crit.join(" · ") + "</p>");
 
   h += `<div class="pr-sign"><div>Facultativo/a</div><div>Firma</div></div>`;
-  h += `<p class="pr-foot">Escalas: PASI y BSA (AEDV 2016), PGA (${S.pga.ver === "iga5" ? "IGA 0–4, Langley 2015" : S.pga.ver === "pga7" ? "estático 0–6, AEDV" : "dinámico"}), DLQI (© Finlay y Khan, Cardiff University), NAPSI (Rich y Scher 2003). Clasificación: Daudén et al. JEADV 2016; Menter et al. JAAD 2019; Strober et al. JAAD 2020. Las imágenes son ilustraciones esquemáticas orientativas.</p>`;
+  h += `<p class="pr-foot">Escalas: PASI y BSA (AEDV 2016), PGA (${S.pga.ver === "iga5" ? "IGA 0–4, Langley 2015" : S.pga.ver === "pga7" ? "estático 0–6, AEDV" : "dinámico"}), DLQI (© Finlay y Khan, Cardiff University), NAPSI (Rich y Scher 2003), PURE-4 (Audureau 2018; Belinchón 2020). Clasificación: Daudén et al. JEADV 2016; Menter et al. JAAD 2019; Strober et al. JAAD 2020. Las imágenes son ilustraciones esquemáticas orientativas.</p>`;
   $("#printReport").innerHTML = h;
 }
 let framed = true; try { framed = window.self !== window.top; } catch (_) { framed = true; }
