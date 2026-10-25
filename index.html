@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Escalas de Psoriasis</title>
-<meta name="description" content="Calculadora de escalas de psoriasis: BSA, PASI, PGA, DLQI, EVA del picor, NAPSI, PSSI, PPASI, GPSI, s-PGA-G y cribado de artritis psoriásica PURE-4.">
+<meta name="description" content="Calculadora de escalas de psoriasis: BSA, PASI, PGA, DLQI, EVA del picor, NAPSI, PSSI, PPASI, GPSI, s-PGA-G, cribado de artritis psoriásica PURE-4 y riesgo cardiometabólico (síndrome metabólico, FIB-4, FGe).">
 <meta name="theme-color" content="#b3384d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -195,6 +195,19 @@ section.panel[hidden]{display:none}
 .q .seg button{font-size:.8rem}
 .q.unanswered{border-style:dashed}
 .q.habit{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.field .ref{font-weight:400;text-transform:none;letter-spacing:0}
+.unitin{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:0 8px 0 0;background:var(--surface)}
+.unitin input{flex:1;min-width:0;border:0;padding:7px 4px 7px 10px;font:inherit;font-family:var(--f-mono);background:transparent;color:var(--ink)}
+.unitin span{font-family:var(--f-mono);color:var(--muted);font-size:.8rem;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface-2);display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .val{font-family:var(--f-mono);font-size:1.5rem;font-weight:700;line-height:1.1}
+.critlist{display:flex;flex-direction:column;gap:6px}
+.critrow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:.92rem}
+.alert{border-radius:var(--r);padding:10px 14px;border:1.5px solid currentColor;display:flex;flex-direction:column;gap:2px;color:var(--teal)}
+.alert p{color:var(--ink);font-size:.9rem}
+.alert[data-sev="1"]{color:var(--sev1)} .alert[data-sev="2"]{color:var(--sev2)} .alert[data-sev="3"]{color:var(--sev3)}
 
 /* Itch */
 .itch-val{font-family:var(--f-mono);font-size:3.2rem;font-weight:700;line-height:1}
@@ -561,6 +574,28 @@ const DLQI_Q7 = [["3", "Sí, me lo impidió"], ["2", "No · bastante"], ["1", "N
 /* Hábitos (comorbilidad y factores agravantes) */
 const HABITS = [["tobacco", "Hábito tabáquico activo"], ["alcohol", "Consumo de alcohol activo"], ["sport", "Practica deporte / ejercicio físico regular"]];
 const habitTxt = v => v == null ? "—" : +v ? "Sí" : "No";
+const habitsCard = () => `<div class="card"><div class="card-h"><h3>Hábitos</h3><span class="small muted">Pulsa de nuevo para dejar sin valorar</span></div><div class="qlist">`
+  + HABITS.map(([k, t]) => `<div class="q habit"><span class="qt"><b>${t}</b></span><div>${seg("habits." + k, [["1", "Sí"], ["0", "No"]])}</div></div>`).join("") + `</div></div>`;
+
+/* Riesgo cardiometabólico: exploración y analítica */
+const METAB_GROUPS = [
+  ["Antropometría y presión arterial", [["weight", "Peso", "kg"], ["height", "Talla", "cm"], ["waist", "Perímetro de cintura", "cm", "H < 102 · M < 88"], ["sbp", "PA sistólica", "mmHg"], ["dbp", "PA diastólica", "mmHg"]], [["txHta", "En tratamiento antihipertensivo"]]],
+  ["Eje glucémico", [["glu", "Glucosa basal", "mg/dL", "< 100"], ["hba1c", "HbA1c", "%", "< 5,7"], ["ins", "Insulina basal (opcional)", "µU/mL", "para HOMA-IR"]], [["txDm", "Diabetes diagnosticada o en tratamiento"]]],
+  ["Perfil lipídico", [["tc", "Colesterol total", "mg/dL"], ["hdl", "c-HDL", "mg/dL", "H ≥ 40 · M ≥ 50"], ["ldl", "c-LDL", "mg/dL"], ["tg", "Triglicéridos", "mg/dL", "< 150"]], [["txLip", "En tratamiento hipolipemiante (estatinas / fibratos)"]]],
+  ["Perfil hepático (MASLD · FIB-4)", [["ast", "AST / GOT", "U/L"], ["alt", "ALT / GPT", "U/L"], ["ggt", "GGT", "U/L"], ["plt", "Plaquetas", "×10³/µL"]], []],
+  ["Función renal, ácido úrico e inflamación", [["cr", "Creatinina", "mg/dL"], ["uric", "Ácido úrico", "mg/dL", "H ≤ 7 · M ≤ 6"], ["uacr", "Albúmina/creatinina en orina", "mg/g", "< 30"], ["crp", "PCR", "mg/L"]], []],
+];
+const METAB_KEYS = ["age", ...METAB_GROUPS.flatMap(g => g[1].map(f => f[0]))];
+const LAB_REQ = [
+  "SOLICITUD DE CONTROL METABÓLICO EN PSORIASIS",
+  "1. Hemograma completo (recuento de plaquetas para el FIB-4).",
+  "2. Eje glucémico: glucosa basal en ayunas, HbA1c [opcional: insulina basal para HOMA-IR].",
+  "3. Perfil lipídico: colesterol total, c-HDL, c-LDL, triglicéridos, colesterol no-HDL [opcional: ApoB].",
+  "4. Perfil hepático (MASLD): AST (GOT), ALT (GPT), GGT, fosfatasa alcalina, bilirrubina total.",
+  "5. Función renal e inflamación: creatinina, FGe (CKD-EPI), ácido úrico, proteína C reactiva (PCR).",
+  "6. Orina: sedimento y cociente albúmina/creatinina (CAC).",
+  "7. En consulta: peso, talla (IMC), perímetro de cintura y presión arterial.",
+].join("\n");
 
 /* PURE-4 · Psoriatic arthritis UnclutteRed screening Evaluation (adaptación española, Belinchón et al. 2020) */
 const PURE4_Q = [
@@ -592,6 +627,7 @@ function emptyState() {
     itch: null,
     pure4: Array(4).fill(null),
     habits: { tobacco: null, alcohol: null, sport: null },
+    metab: Object.assign(Object.fromEntries(METAB_KEYS.map(k => [k, null])), { sex: null, txHta: false, txDm: false, txLip: false }),
     crit: { systemic: false, erythro: false, gpp: false, lpp: false, face: false, psa: false, topfail: false },
   };
 }
@@ -607,11 +643,13 @@ function exampleState() {
   s.itch = 6;
   s.pure4 = [0, 1, 0, 0];
   s.habits = { tobacco: 1, alcohol: 0, sport: 0 };
+  s.metab = { age: 52, sex: "H", weight: 96, height: 174, waist: 108, sbp: 138, dbp: 88, txHta: false, glu: 112, hba1c: 6.1, ins: 14.5, txDm: false,
+    tc: 228, hdl: 36, ldl: 142, tg: 215, txLip: false, ast: 42, alt: 58, ggt: 74, plt: 165, cr: 1.05, uric: 7.6, uacr: 18, crp: 6.4 };
   return s;
 }
 const STORE = "psoriasis-escalas-v1";
 let S;
-try { const raw = localStorage.getItem(STORE); S = raw ? Object.assign(emptyState(), JSON.parse(raw)) : exampleState(); } catch (_) { S = exampleState(); }
+try { const raw = localStorage.getItem(STORE); S = raw ? Object.assign(emptyState(), JSON.parse(raw)) : exampleState(); S.metab = Object.assign(emptyState().metab, S.metab); } catch (_) { S = exampleState(); }
 // convierte evaluaciones guardadas con el BSA por lados (versión anterior) al BSA agrupado
 (function migrateBSA() { const b = S.bsa || {}; if ("armR" in b || "trunkA" in b || "legR" in b) { const n = k => +b[k] || 0; S.bsa = { head: n("head"), arms: n("armR") + n("armL"), trunk: n("trunkA") + n("trunkP"), legs: n("legR") + n("legL"), perineum: n("perineum") }; } })();
 function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (_) { } }
@@ -647,7 +685,73 @@ function calc() {
   C.pure4Ans = S.pure4.filter(v => v !== null).length;
   C.pure4 = C.pure4Ans ? S.pure4.reduce((a, v) => a + (+v || 0), 0) : null;
   C.specialAreas = [C.napsi > 0 && "uñas", C.pssi > 0 && "cuero cabelludo", C.ppasi > 0 && "palmas/plantas", (C.gpsi > 0 || (S.spgag || 0) > 0) && "genitales", S.crit.face && "cara / zonas expuestas"].filter(Boolean);
+  C.m = calcMetab();
   return C;
+}
+// FGe por CKD-EPI 2021 (sin raza)
+function ckdEpi(cr, age, fem) {
+  if (!cr || !age) return null;
+  const k = fem ? 0.7 : 0.9, a = fem ? -0.241 : -0.302, r = cr / k;
+  return 142 * Math.pow(Math.min(r, 1), a) * Math.pow(Math.max(r, 1), -1.2) * Math.pow(0.9938, age) * (fem ? 1.012 : 1);
+}
+function calcMetab() {
+  const m = S.metab || {}, v = k => (m[k] == null || m[k] === "" ? null : +m[k]);
+  const R = Object.fromEntries(METAB_KEYS.map(k => [k, v(k)]));
+  const sex = m.sex === "H" || m.sex === "M" ? m.sex : null, fem = sex === "M";
+  Object.assign(R, { sex, fem, txHta: !!m.txHta, txDm: !!m.txDm, txLip: !!m.txLip });
+  R.any = METAB_KEYS.some(k => R[k] != null) || R.txHta || R.txDm || R.txLip;
+  R.imc = R.weight && R.height ? R.weight / Math.pow(R.height / 100, 2) : null;
+  R.homa = R.glu && R.ins ? R.glu * R.ins / 405 : null;
+  R.nohdl = R.tc && R.hdl && R.tc > R.hdl ? R.tc - R.hdl : null;
+  R.fib4 = R.age && R.ast && R.alt && R.plt ? R.age * R.ast / (R.plt * Math.sqrt(R.alt)) : null;
+  R.fge = sex ? ckdEpi(R.cr, R.age, fem) : null;
+  // Síndrome metabólico, NCEP-ATP III: ≥ 3 de 5 criterios
+  const has = (...k) => k.some(x => R[x] != null);
+  R.sm = [
+    ["Obesidad abdominal (cintura > 102 H / > 88 M)", R.waist != null && sex ? R.waist > (fem ? 88 : 102) : null, R.waist != null ? fmt(R.waist) + " cm" : ""],
+    ["Presión arterial ≥ 130/85 mmHg o tratamiento", has("sbp", "dbp") || R.txHta ? R.sbp >= 130 || R.dbp >= 85 || R.txHta : null, [R.sbp != null || R.dbp != null ? `${R.sbp ?? "—"}/${R.dbp ?? "—"} mmHg` : "", R.txHta ? "con tratamiento" : ""].filter(Boolean).join(" · ")],
+    ["Glucemia basal ≥ 100 mg/dL o diabetes", has("glu", "hba1c") || R.txDm ? R.glu >= 100 || R.hba1c >= 6.5 || R.txDm : null, R.glu != null ? fmt(R.glu) + " mg/dL" : R.txDm ? "diabetes conocida" : ""],
+    ["Triglicéridos ≥ 150 mg/dL o tratamiento", R.tg != null || R.txLip ? R.tg >= 150 || R.txLip : null, R.tg != null ? fmt(R.tg) + " mg/dL" : R.txLip ? "con tratamiento" : ""],
+    ["c-HDL bajo (< 40 H / < 50 M)", R.hdl != null && sex ? R.hdl < (fem ? 50 : 40) : null, R.hdl != null ? fmt(R.hdl) + " mg/dL" : ""],
+  ];
+  R.smCount = R.sm.filter(c => c[1] === true).length; R.smEval = R.sm.filter(c => c[1] !== null).length;
+  R.alerts = metabAlerts(R);
+  return R;
+}
+function sevIMC(v) { return v == null ? [0, "—"] : v < 18.5 ? [2, "Bajo peso"] : v < 25 ? [1, "Normopeso"] : v < 30 ? [2, "Sobrepeso"] : [3, "Obesidad"]; }
+function sevFIB4(v, age) { if (v == null) return [0, "—"]; return v > 2.67 ? [3, "Alto riesgo de fibrosis avanzada (F3–F4)"] : v >= (age >= 65 ? 2 : 1.3) ? [2, "Indeterminado"] : [1, "Bajo riesgo"]; }
+function sevFGe(v) { return v == null ? [0, "—"] : v < 60 ? [3, "ERC (< 60)"] : v < 90 ? [2, "Ligeramente disminuido (G2)"] : [1, "Normal (G1)"]; }
+function sevHOMA(v) { return v == null ? [0, "—"] : v >= 2.5 ? [2, "Resistencia a la insulina (≥ 2,5)"] : [1, "Normal"]; }
+function sevNoHDL(v) { return v == null ? [0, "—"] : v >= 130 ? [2, "Aterogénico (≥ 130)"] : [1, "< 130"]; }
+function sevSM(R) { return !R.smEval ? [0, "Sin datos"] : R.smCount >= 3 ? [3, `Síndrome metabólico (${R.smCount}/5)`] : [1, `No cumple criterios (${R.smCount}/5; ${R.smEval} evaluados)`]; }
+function sevGlu(R) {
+  if (R.txDm) return [3, "Diabetes conocida"];
+  if (R.glu == null && R.hba1c == null) return [0, "—"];
+  return R.hba1c >= 6.5 || R.glu >= 126 ? [3, "Rango de diabetes"] : R.hba1c >= 5.7 || R.glu >= 100 ? [2, "Prediabetes"] : [1, "Normal"];
+}
+function metabAlerts(R) {
+  const A = [], H = S.habits || {};
+  const low = R.age >= 65 ? 2 : 1.3;
+  if ((R.fib4 != null && R.fib4 >= low) || R.alt > 45 || R.ast > 45)
+    A.push([R.fib4 > 2.67 ? 3 : 2, "Riesgo hepático (MASLD) · precaución con metotrexato", `FIB-4 ${R.fib4 != null ? fmt(R.fib4, 2) : "no calculable"}${R.alt > 45 || R.ast > 45 ? ", transaminasas elevadas" : ""}. Evitar o extremar la precaución con metotrexato; valorar elastografía de transición (FibroScan) o ecografía abdominal.`]);
+  if (+H.alcohol === 1)
+    A.push([2, "Consumo de alcohol activo", "Aumenta la hepatotoxicidad del metotrexato y empeora la MASLD; recomendar abstinencia o reducción del consumo."]);
+  if (R.tg >= 150)
+    A.push([R.tg >= 300 ? 3 : 2, "Hipertrigliceridemia · precaución con acitretina y ciclosporina", `Triglicéridos ${fmt(R.tg)} mg/dL. Los retinoides y la ciclosporina pueden agravarla; valorar el control lipídico.`]);
+  if ((R.fge != null && R.fge < 60) || R.uacr >= 30)
+    A.push([3, "Compromiso renal · contraindicación relativa de ciclosporina", `${R.fge != null && R.fge < 60 ? `FGe ${fmt(R.fge, 0)} mL/min/1,73 m²` : ""}${R.fge != null && R.fge < 60 && R.uacr >= 30 ? " · " : ""}${R.uacr >= 30 ? `albuminuria (CAC ${fmt(R.uacr, 0)} mg/g)` : ""}. Evitar nefrotóxicos y ajustar los fármacos de eliminación renal (p. ej., metotrexato).`]);
+  if (R.uric != null && R.uric > (R.fem ? 6 : 7))
+    A.push([2, "Hiperuricemia", `Ácido úrico ${fmt(R.uric)} mg/dL. Diagnóstico diferencial con gota ante una monoartritis; precaución con ciclosporina.`]);
+  if (R.imc >= 30)
+    A.push([0, "Obesidad e influencia en la terapia biológica", `IMC ${fmt(R.imc)} kg/m². Reduce la respuesta a biológicos de dosis fija; valorar fármacos con ajuste por peso (ustekinumab > 100 kg, infliximab) o anti-IL-17/IL-23 de alta eficacia, junto con intervención ponderal.`]);
+  const g = sevGlu(R);
+  if (g[0] >= 2 && !R.txDm)
+    A.push([g[0], g[0] === 3 ? "Glucemia en rango de diabetes" : "Prediabetes / resistencia a la insulina", `Glucosa ${R.glu != null ? fmt(R.glu) + " mg/dL" : "—"} · HbA1c ${R.hba1c != null ? fmt(R.hba1c) + " %" : "—"}. Se recomienda intervención metabólica activa${g[0] === 3 ? " y confirmar el diagnóstico" : ""}.`]);
+  if (+H.tobacco === 1)
+    A.push([2, "Tabaquismo activo", "Factor de riesgo cardiovascular y de peor respuesta al tratamiento; ofrecer deshabituación tabáquica."]);
+  if (H.sport != null && +H.sport === 0)
+    A.push([0, "Sedentarismo", "Recomendar ejercicio físico regular como parte del abordaje cardiometabólico."]);
+  return A;
 }
 function sevPASI(v) { return v <= 0 ? [0, "Sin lesiones"] : v < 10 ? [1, "Leve (<10)"] : [3, "Moderada-grave (≥10)"]; }
 function sevBSA(v) { return v <= 0 ? [0, "Sin afectación"] : v < 10 ? [1, "Leve (<10 %)"] : [3, "Moderada-grave (≥10 %)"]; }
@@ -698,6 +802,7 @@ const SECTIONS = [
   { g: "Localizaciones especiales", k: "ppasi", n: "PPASI", sub: "Palmas y plantas" },
   { g: "Localizaciones especiales", k: "genital", n: "GPSI · s-PGA-G", sub: "Área genital" },
   { g: "Comorbilidad", k: "pure4", n: "PURE-4", sub: "Cribado de artritis psoriásica" },
+  { g: "Comorbilidad", k: "metab", n: "Riesgo cardiometabólico", sub: "Síndrome metabólico, FIB-4, FGe" },
   { g: "Informe", k: "summary", n: "Resumen", sub: "Clasificación de gravedad" },
 ];
 
@@ -859,6 +964,26 @@ function buildMain() {
   <p class="note">A partir de <b>1 respuesta positiva</b>, valorar la afectación reumatológica. Con ese umbral el PURE-4 tiene una sensibilidad del 85,7 % y una especificidad del 83,6 % (Audureau et al., JEADV 2018; adaptación al español: Belinchón et al., Actas Dermosifiliogr 2020).</p></div>
   </section>`;
 
+  /* ---------- Riesgo cardiometabólico ---------- */
+  const mField = ([k, n, u, ref]) => `<div class="field"><label for="m-${k}">${n}${ref ? ` <span class="ref">(${ref})</span>` : ""}</label><div class="unitin"><input id="m-${k}" inputmode="decimal" data-path="metab.${k}" data-lab="1"><span>${u}</span></div></div>`;
+  const mChecks = cs => cs.length ? `<div class="checks">` + cs.map(([k, t]) => `<label><input type="checkbox" data-path="metab.${k}" data-bool="1"><span>${t}</span></label>`).join("") + `</div>` : "";
+  h += `<section class="panel" id="sec-metab" data-sec="metab">
+  <div class="phead"><div class="intro"><span class="eyebrow">Comorbilidad · evaluación cardiometabólica</span><h2>Riesgo cardiometabólico</h2>
+  <p>Exploración y analítica para el cribado del síndrome metabólico, la enfermedad hepática metabólica (MASLD) y la función renal, con los condicionantes para elegir el tratamiento sistémico o biológico.</p></div>
+  ${scorebox({ label: "Síndrome metabólico", key: "sm" }, "/ 5")}</div>
+  <div class="grid2"><div class="card"><div class="card-h"><h3>Datos base</h3></div><div class="fields">${mField(["age", "Edad", "años"])}
+  <div class="field"><label>Sexo biológico</label>${seg("metab.sex", [["H", "Hombre"], ["M", "Mujer"]])}</div></div>
+  <p class="note">La edad y el sexo son necesarios para el FIB-4, el FGe y los puntos de corte de cintura, c-HDL y ácido úrico.</p></div>
+  ${habitsCard()}</div>`
+    + METAB_GROUPS.map(([t, fs, cs]) => `<div class="card"><div class="card-h"><h3>${t}</h3></div><div class="fields">${fs.map(mField).join("")}</div>${mChecks(cs)}</div>`).join("")
+    + `<div class="card"><div class="card-h"><h3>Índices calculados</h3></div><div class="kpis">`
+    + [["imc", "IMC", "kg/m²"], ["fib4", "FIB-4", ""], ["fge", "FGe CKD-EPI", "mL/min/1,73 m²"], ["nohdl", "Col. no-HDL", "mg/dL"], ["homa", "HOMA-IR", ""]].map(([k, n, u]) => `<div class="kpi"><span class="eyebrow">${n}</span><span><span class="val" data-out="m-${k}">—</span> <span class="small muted">${u}</span></span><span class="sevpill" data-sevout="m-${k}">—</span></div>`).join("")
+    + `</div><p class="formula">FIB-4 = edad × AST / (plaquetas × √ALT) · HOMA-IR = glucosa (mg/dL) × insulina / 405</p></div>
+  <div class="grid2"><div class="card"><div class="card-h"><h3>Criterios de síndrome metabólico</h3><span class="small muted">NCEP-ATP III · ≥ 3 confirma</span></div><div class="critlist" data-out="smList"></div></div>
+  <div class="card"><div class="card-h"><h3>Alertas terapéuticas</h3></div><div class="critlist" data-out="mAlerts"></div></div></div>
+  <div class="card"><div class="card-h"><h3>Petición de analítica</h3><button type="button" class="btn primary" id="copyLabBtn">Copiar solicitud</button></div><textarea class="out" id="labText" readonly aria-label="Solicitud de analítica" style="min-height:190px">${LAB_REQ}</textarea><span class="small muted" id="copyLabMsg" aria-live="polite"></span></div>
+  </section>`;
+
   /* ---------- Resumen ---------- */
   h += `<section class="panel" id="sec-summary" data-sec="summary">
   <div class="phead"><div class="intro"><span class="eyebrow">Informe</span><h2>Resumen y clasificación de la gravedad</h2>
@@ -867,8 +992,7 @@ function buildMain() {
   <div class="card"><div class="card-h"><h3>Criterios clínicos adicionales</h3></div><div class="checks">
   ${[["systemic", "Requiere o ha requerido tratamiento sistémico (clásico, biológico o fototerapia)"], ["erythro", "Psoriasis eritrodérmica"], ["gpp", "Psoriasis pustulosa generalizada"], ["lpp", "Psoriasis pustulosa localizada con limitación funcional o psicológica"], ["face", "Afectación de cara u otras zonas expuestas (zona de alto impacto)"], ["psa", "Artritis psoriásica asociada"], ["topfail", "Fracaso del tratamiento tópico"]].map(([k, t]) => `<label><input type="checkbox" id="crit-${k}" data-path="crit.${k}" data-bool="1"><span>${t}</span></label>`).join("")}
   </div><p class="note" data-out="specialHint"></p></div></div>
-  <div class="card"><div class="card-h"><h3>Hábitos</h3><span class="small muted">Pulsa de nuevo para dejar sin valorar</span></div><div class="qlist">`
-    + HABITS.map(([k, t]) => `<div class="q habit"><span class="qt"><b>${t}</b></span><div>${seg("habits." + k, [["1", "Sí"], ["0", "No"]])}</div></div>`).join("") + `</div></div>
+  ${habitsCard()}
   <div class="grid2" data-out="verdicts"></div>
   <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="printBtn">Imprimir informe</button><button type="button" class="btn primary" id="copyBtn">Copiar texto</button></div></div><p class="note" id="printNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir el informe.</p><textarea class="out" id="sumText" readonly aria-label="Resumen en texto"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
   </section>`;
@@ -982,6 +1106,15 @@ function update() {
   out("pure4Msg", C.pure4 == null ? "Responde las 4 preguntas." : C.pure4 >= 1 ? `<b>Cribado positivo</b> (${C.pure4} respuesta${C.pure4 > 1 ? "s" : ""} afirmativa${C.pure4 > 1 ? "s" : ""}): valorar la afectación reumatológica y la derivación a Reumatología.` : C.pure4Ans < 4 ? "Ninguna respuesta positiva por ahora; completa las preguntas restantes." : "<b>Cribado negativo</b>: ninguna respuesta positiva. Repetir periódicamente en el seguimiento.");
   chip("pure4", C.pure4 == null ? "—" : C.pure4 + "/4", pSev[0]);
 
+  /* Riesgo cardiometabólico */
+  const R = C.m, smS = sevSM(R);
+  out("sm", R.smEval ? String(R.smCount) : "—"); sevOut("sm", smS);
+  [["imc", R.imc, 1, sevIMC(R.imc)], ["fib4", R.fib4, 2, sevFIB4(R.fib4, R.age)], ["fge", R.fge, 0, sevFGe(R.fge)], ["nohdl", R.nohdl, 0, sevNoHDL(R.nohdl)], ["homa", R.homa, 2, sevHOMA(R.homa)]]
+    .forEach(([k, v, d, sv]) => { out("m-" + k, v == null ? "—" : fmt(v, d)); sevOut("m-" + k, sv); });
+  out("smList", R.sm.map(([t, ok, val]) => `<div class="critrow"><span>${t}</span><span class="sevpill" data-sev="${ok === null ? 0 : ok ? 3 : 1}">${ok === null ? "Pendiente" : (ok ? "Sí" : "No") + (val ? " · " + val : "")}</span></div>`).join(""));
+  out("mAlerts", R.alerts.length ? R.alerts.map(([lv, t, b]) => `<div class="alert" data-sev="${lv}"><b>${t}</b><p>${b}</p></div>`).join("") : `<p class="note">${R.any ? "Sin alertas metabólicas ni condicionantes farmacológicos con los datos actuales." : "Introduce la exploración y la analítica para generar las alertas sobre metotrexato, ciclosporina, acitretina y terapias biológicas."}</p>`);
+  chip("metab", R.smEval ? R.smCount + "/5" : "—", smS[0]);
+
   summary(C);
 }
 let lastPust = false;
@@ -1007,6 +1140,26 @@ function summary(C) {
   rows.push(["PURE-4", C.pure4 == null ? "—" : C.pure4 + " / 4", sevPURE(C.pure4, C.pure4Ans)[1]]);
   rows.push(["g", "Hábitos"]);
   HABITS.forEach(([k, t]) => rows.push([t, habitTxt(S.habits[k]), S.habits[k] == null ? "Sin valorar" : k === "sport" ? (+S.habits[k] ? "Hábito saludable" : "Sedentarismo") : (+S.habits[k] ? "Factor agravante / comorbilidad" : "—")]));
+  const R = C.m;
+  if (R.any) {
+    const f = (v, d = 1) => v == null ? "—" : fmt(v, d);
+    rows.push(["g", "Riesgo cardiometabólico"]);
+    if (R.age != null || R.sex) rows.push(["Edad / sexo", [R.age != null ? R.age + " años" : "", R.sex ? (R.fem ? "mujer" : "hombre") : ""].filter(Boolean).join(", "), "—"]);
+    if (R.weight != null || R.height != null) rows.push(["IMC", R.imc == null ? "—" : `${f(R.imc)} kg/m²`, `${sevIMC(R.imc)[1]} (peso ${f(R.weight)} kg, talla ${f(R.height, 0)} cm)`]);
+    if (R.waist != null) rows.push(["Perímetro de cintura", f(R.waist) + " cm", R.sm[0][1] === null ? "Indica el sexo" : R.sm[0][1] ? "Obesidad abdominal" : "Normal"]);
+    if (R.sbp != null || R.dbp != null || R.txHta) rows.push(["Presión arterial", `${R.sbp ?? "—"}/${R.dbp ?? "—"} mmHg`, (R.sm[1][1] ? "≥ 130/85 o tratamiento" : "Normal") + (R.txHta ? " · en tratamiento" : "")]);
+    if (R.glu != null || R.hba1c != null || R.txDm) rows.push(["Glucosa / HbA1c", `${f(R.glu, 0)} mg/dL · ${f(R.hba1c)} %`, sevGlu(R)[1] + (R.homa != null ? ` · HOMA-IR ${f(R.homa, 2)}` : "")]);
+    if (R.tc != null || R.hdl != null || R.ldl != null || R.tg != null || R.txLip) {
+      const ab = [R.tg >= 150 && "TG ≥ 150", R.sm[4][1] && "c-HDL bajo", R.nohdl >= 130 && `no-HDL ${f(R.nohdl, 0)} ≥ 130`].filter(Boolean);
+      rows.push(["Perfil lipídico", `CT ${f(R.tc, 0)} · HDL ${f(R.hdl, 0)} · LDL ${f(R.ldl, 0)} · TG ${f(R.tg, 0)} mg/dL`, (ab.length ? ab.join("; ") : "Sin alteraciones en los criterios evaluados") + (R.txLip ? " · en tratamiento" : "")]);
+    }
+    if (R.ast != null || R.alt != null || R.ggt != null || R.plt != null) rows.push(["Perfil hepático", `AST ${f(R.ast, 0)} · ALT ${f(R.alt, 0)} · GGT ${f(R.ggt, 0)} U/L · plaq. ${f(R.plt, 0)}×10³`, R.fib4 == null ? "FIB-4 no calculable (faltan edad, AST, ALT o plaquetas)" : `FIB-4 ${f(R.fib4, 2)}: ${sevFIB4(R.fib4, R.age)[1].toLowerCase()}`]);
+    if (R.cr != null) rows.push(["Función renal", `Cr ${f(R.cr, 2)} mg/dL`, R.fge == null ? "FGe no calculable (faltan edad o sexo)" : `FGe ${f(R.fge, 0)} mL/min/1,73 m²: ${sevFGe(R.fge)[1]}`]);
+    if (R.uacr != null) rows.push(["Albúmina/creatinina en orina", f(R.uacr, 0) + " mg/g", R.uacr >= 30 ? "Albuminuria (≥ 30)" : "Normal"]);
+    if (R.uric != null) rows.push(["Ácido úrico", f(R.uric) + " mg/dL", R.uric > (R.fem ? 6 : 7) ? "Hiperuricemia" : "Normal"]);
+    if (R.crp != null) rows.push(["PCR", f(R.crp) + " mg/L", "—"]);
+    rows.push(["Síndrome metabólico (NCEP-ATP III)", R.smEval ? R.smCount + " / 5" : "—", sevSM(R)[1]]);
+  }
   out("sumTable", rows.map(r => r[0] === "g" ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` : `<tr><td><b>${r[0]}</b></td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join(""));
 
   const cr = S.crit, sp = C.specialAreas;
@@ -1042,6 +1195,7 @@ function summary(C) {
   rows.forEach(r => { if (r[0] === "g") L.push("", r[1].toUpperCase()); else if (HABITS.some(h => h[1] === r[0])) L.push(`- ${r[0]}: ${r[1]}`); else L.push(`- ${r[0]}: ${r[1]} (${r[2]})`); });
   L.push("", "CLASIFICACIÓN", `- AEDV: ${aedvTxt}${aedv.length ? " [" + aedv.join("; ") + "]" : ""}`, `- AAD-NPF: ${aad}${aadWhy.length ? " [" + aadWhy.join("; ") + "]" : ""}`, `- IPC: ${ipc.length ? "candidato a tratamiento sistémico [" + ipc.join("; ") + "]" : "candidato a tratamiento tópico"}`);
   if (cr.psa) L.push("- Artritis psoriásica asociada");
+  if (R.alerts.length) { L.push("", "CONDICIONANTES TERAPÉUTICOS"); R.alerts.forEach(a => L.push(`- ${a[1]}: ${a[2]}`)); }
   $("#sumText").value = L.join("\n");
   LAST = { C, rows, aedvTxt, aedv, aad, aadWhy, ipc };
 }
@@ -1050,7 +1204,7 @@ function summary(C) {
    Eventos
    ============================================================ */
 function parseVal(path, raw) {
-  if (path === "pga.ver" || path === "ppasi.mode") return raw;
+  if (path === "pga.ver" || path === "ppasi.mode" || path === "metab.sex") return raw;
   if (raw === "np") return "np";
   return raw.includes(".") ? parseFloat(raw) : parseInt(raw, 10);
 }
@@ -1065,12 +1219,12 @@ document.addEventListener("click", e => {
     const p = b.dataset.path, v = parseVal(p, b.dataset.val);
     const cur = getP(S, p);
     // pulsar de nuevo una escala de selección única la deja sin valorar
-    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|pure4\.\d|habits\.\w+|itch)$/.test(p);
+    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|pure4\.\d|habits\.\w+|metab\.sex|itch)$/.test(p);
     setP(S, p, nullable && String(cur) === String(v) ? null : v);
     S.example = false; update();
   }
 });
-document.addEventListener("focusout", e => { if (e.target.matches?.("input[data-regpct], input[data-num]")) setTimeout(update); });
+document.addEventListener("focusout", e => { if (e.target.matches?.("input[data-regpct], input[data-num], input[data-lab]")) setTimeout(update); });
 document.addEventListener("input", e => {
   // % de la región (0–100) → palmas (% de superficie corporal)
   const rp = e.target.closest("input[data-regpct]");
@@ -1078,6 +1232,7 @@ document.addEventListener("input", e => {
   const inp = e.target.closest("input[data-path]"); if (!inp) return;
   const p = inp.dataset.path;
   if (inp.dataset.bool) setP(S, p, inp.checked);
+  else if (inp.dataset.lab) { const n = parseFloat(inp.value.replace(",", ".")); setP(S, p, isFinite(n) && n >= 0 ? n : null); }
   else if (inp.dataset.num) { const n = parseFloat(inp.value.replace(",", ".")); setP(S, p, isFinite(n) ? Math.max(0, Math.min(+inp.dataset.num, n)) : 0); }
   else if (inp.type === "range") setP(S, p, parseFloat(inp.value));
   else setP(S, p, inp.value);
@@ -1153,6 +1308,8 @@ function buildPrint() {
   if (C.gpsi > 0 || S.spgag != null) sp.push(eidRow("Genital (GPSI)", S.gpsi, fmt(C.gpsi) + (S.spgag != null ? ` · s-PGA-G ${S.spgag}` : "")));
   if (sp.length) h += sec("Localizaciones especiales", tbl(["Localización", "Eritema", "Induración", "Desc./masc.", "Área", "Puntuación"], sp));
 
+  if (C.m.alerts.length) h += sec("Condicionantes terapéuticos", "<ul>" + C.m.alerts.map(a => `<li><b>${a[1]}.</b> ${a[2]}</li>`).join("") + "</ul>");
+
   const crit = [["systemic", "Tratamiento sistémico actual o previo"], ["erythro", "Eritrodermia"], ["gpp", "Pustulosa generalizada"], ["lpp", "Pustulosa localizada con limitación"], ["face", "Afectación de cara / zonas expuestas"], ["psa", "Artritis psoriásica"], ["topfail", "Fracaso del tratamiento tópico"]].filter(([k]) => S.crit[k]).map(x => x[1]);
   if (crit.length) h += sec("Criterios clínicos adicionales", "<p>" + crit.join(" · ") + "</p>");
 
@@ -1165,11 +1322,12 @@ function doPrint() { buildPrint(); window.print(); }
 window.addEventListener("beforeprint", buildPrint);
 $$("#btnPrint, #printBtn").forEach(b => { if (framed) b.hidden = true; else b.addEventListener("click", doPrint); });
 if (framed) { const n = $("#printNote"); if (n) n.hidden = false; }
-$("#copyBtn").addEventListener("click", () => {
-  const ta = $("#sumText"), msg = $("#copyMsg");
+function copyFrom(ta, msg) {
   const fallback = () => { ta.focus(); ta.select(); msg.textContent = "Texto seleccionado: pulsa Ctrl+C (o ⌘+C) para copiarlo."; };
   try { navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = "Copiado al portapapeles."; }, fallback); } catch (_) { fallback(); }
-});
+}
+$("#copyBtn").addEventListener("click", () => copyFrom($("#sumText"), $("#copyMsg")));
+$("#copyLabBtn").addEventListener("click", () => copyFrom($("#labText"), $("#copyLabMsg")));
 lastPust = false;
 
 let startTab = "pasi"; try { startTab = localStorage.getItem(STORE + "-tab") || (location.hash.slice(1) || "pasi"); } catch (_) { }
