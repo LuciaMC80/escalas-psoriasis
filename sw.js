@@ -1,5 +1,5 @@
 // Escalas de Psoriasis: funcionamiento sin conexión
-const CACHE = "psoriasis-v9";
+const CACHE = "psoriasis-v10";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
 
 self.addEventListener("install", e => {
@@ -14,7 +14,7 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   // Página: red primero (para recibir actualizaciones) y caché si no hay conexión
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put("index.html", cp)); return r; }).catch(() => caches.match("index.html")));
+    e.respondWith(fetch(req, { cache: "no-store" }).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put("index.html", cp)); return r; }).catch(() => caches.match("index.html")));
     return;
   }
   // Resto (iconos, tipografías de Google Fonts): caché primero
