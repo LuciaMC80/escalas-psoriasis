@@ -194,6 +194,7 @@ section.panel[hidden]{display:none}
 .q .qt{font-size:.95rem}
 .q .seg button{font-size:.8rem}
 .q.unanswered{border-style:dashed}
+.q.habit{grid-template-columns:minmax(0,1fr) auto;align-items:center}
 
 /* Itch */
 .itch-val{font-family:var(--f-mono);font-size:3.2rem;font-weight:700;line-height:1}
@@ -557,6 +558,10 @@ const DLQI_Q = [
 const DLQI_OPTS = [["3", "Muchísimo"], ["2", "Bastante"], ["1", "Un poco"], ["0", "Nada"], ["np", "No procede"]];
 const DLQI_Q7 = [["3", "Sí, me lo impidió"], ["2", "No · bastante"], ["1", "No · un poco"], ["0", "No · nada"], ["np", "No procede"]];
 
+/* Hábitos (comorbilidad y factores agravantes) */
+const HABITS = [["tobacco", "Hábito tabáquico activo"], ["alcohol", "Consumo de alcohol activo"], ["sport", "Practica deporte / ejercicio físico regular"]];
+const habitTxt = v => v == null ? "—" : +v ? "Sí" : "No";
+
 /* PURE-4 · Psoriatic arthritis UnclutteRed screening Evaluation (adaptación española, Belinchón et al. 2020) */
 const PURE4_Q = [
   ["Signos sugestivos de dactilitis (dedo en forma de salchicha)", "¿Ha tenido alguna vez dolor e hinchazón/inflamación que afectara a todo un dedo de la mano o del pie?"],
@@ -586,6 +591,7 @@ function emptyState() {
     dlqi: Array(10).fill(null),
     itch: null,
     pure4: Array(4).fill(null),
+    habits: { tobacco: null, alcohol: null, sport: null },
     crit: { systemic: false, erythro: false, gpp: false, lpp: false, face: false, psa: false, topfail: false },
   };
 }
@@ -600,6 +606,7 @@ function exampleState() {
   s.dlqi = [2, 2, 1, 1, 1, 0, 1, 0, "np", 1];
   s.itch = 6;
   s.pure4 = [0, 1, 0, 0];
+  s.habits = { tobacco: 1, alcohol: 0, sport: 0 };
   return s;
 }
 const STORE = "psoriasis-escalas-v1";
@@ -860,6 +867,8 @@ function buildMain() {
   <div class="card"><div class="card-h"><h3>Criterios clínicos adicionales</h3></div><div class="checks">
   ${[["systemic", "Requiere o ha requerido tratamiento sistémico (clásico, biológico o fototerapia)"], ["erythro", "Psoriasis eritrodérmica"], ["gpp", "Psoriasis pustulosa generalizada"], ["lpp", "Psoriasis pustulosa localizada con limitación funcional o psicológica"], ["face", "Afectación de cara u otras zonas expuestas (zona de alto impacto)"], ["psa", "Artritis psoriásica asociada"], ["topfail", "Fracaso del tratamiento tópico"]].map(([k, t]) => `<label><input type="checkbox" id="crit-${k}" data-path="crit.${k}" data-bool="1"><span>${t}</span></label>`).join("")}
   </div><p class="note" data-out="specialHint"></p></div></div>
+  <div class="card"><div class="card-h"><h3>Hábitos</h3><span class="small muted">Pulsa de nuevo para dejar sin valorar</span></div><div class="qlist">`
+    + HABITS.map(([k, t]) => `<div class="q habit"><span class="qt"><b>${t}</b></span><div>${seg("habits." + k, [["1", "Sí"], ["0", "No"]])}</div></div>`).join("") + `</div></div>
   <div class="grid2" data-out="verdicts"></div>
   <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="printBtn">Imprimir informe</button><button type="button" class="btn primary" id="copyBtn">Copiar texto</button></div></div><p class="note" id="printNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir el informe.</p><textarea class="out" id="sumText" readonly aria-label="Resumen en texto"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
   </section>`;
@@ -996,6 +1005,8 @@ function summary(C) {
   rows.push(["s-PGA-G", S.spgag == null ? "—" : S.spgag + " / 5", sevSix(S.spgag)[1]]);
   rows.push(["g", "Comorbilidad"]);
   rows.push(["PURE-4", C.pure4 == null ? "—" : C.pure4 + " / 4", sevPURE(C.pure4, C.pure4Ans)[1]]);
+  rows.push(["g", "Hábitos"]);
+  HABITS.forEach(([k, t]) => rows.push([t, habitTxt(S.habits[k]), S.habits[k] == null ? "Sin valorar" : k === "sport" ? (+S.habits[k] ? "Hábito saludable" : "Sedentarismo") : (+S.habits[k] ? "Factor agravante / comorbilidad" : "—")]));
   out("sumTable", rows.map(r => r[0] === "g" ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` : `<tr><td><b>${r[0]}</b></td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join(""));
 
   const cr = S.crit, sp = C.specialAreas;
@@ -1028,7 +1039,7 @@ function summary(C) {
 
   const L = [];
   L.push(`EVALUACIÓN DE PSORIASIS — ${S.patient.name || "Paciente"} — ${S.patient.date || ""}`);
-  rows.forEach(r => { if (r[0] === "g") L.push("", r[1].toUpperCase()); else L.push(`- ${r[0]}: ${r[1]} (${r[2]})`); });
+  rows.forEach(r => { if (r[0] === "g") L.push("", r[1].toUpperCase()); else if (HABITS.some(h => h[1] === r[0])) L.push(`- ${r[0]}: ${r[1]}`); else L.push(`- ${r[0]}: ${r[1]} (${r[2]})`); });
   L.push("", "CLASIFICACIÓN", `- AEDV: ${aedvTxt}${aedv.length ? " [" + aedv.join("; ") + "]" : ""}`, `- AAD-NPF: ${aad}${aadWhy.length ? " [" + aadWhy.join("; ") + "]" : ""}`, `- IPC: ${ipc.length ? "candidato a tratamiento sistémico [" + ipc.join("; ") + "]" : "candidato a tratamiento tópico"}`);
   if (cr.psa) L.push("- Artritis psoriásica asociada");
   $("#sumText").value = L.join("\n");
@@ -1054,7 +1065,7 @@ document.addEventListener("click", e => {
     const p = b.dataset.path, v = parseVal(p, b.dataset.val);
     const cur = getP(S, p);
     // pulsar de nuevo una escala de selección única la deja sin valorar
-    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|pure4\.\d|itch)$/.test(p);
+    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|pure4\.\d|habits\.\w+|itch)$/.test(p);
     setP(S, p, nullable && String(cur) === String(v) ? null : v);
     S.example = false; update();
   }
