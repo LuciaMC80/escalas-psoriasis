@@ -76,7 +76,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 
 /* Shell */
 .shell{max-width:1280px;margin:18px auto 0;display:grid;grid-template-columns:236px minmax(0,1fr);gap:24px;align-items:start}
-nav.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:16px}
+nav.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);display:flex;flex-direction:column;gap:16px}
 .navgroup{display:flex;flex-direction:column;gap:4px}
 .navgroup .eyebrow{padding:0 10px 4px}
 .navbtn{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:1px solid transparent;background:none;border-radius:8px;padding:8px 10px;width:100%}
@@ -209,6 +209,17 @@ section.panel[hidden]{display:none}
 .alert p{color:var(--ink);font-size:.9rem}
 .implic{font-size:.9rem;display:flex;flex-direction:column;gap:6px}
 .implic p{margin:0}
+.tabs{max-width:1280px;margin:14px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:5px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tab{display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:none;border-radius:8px;padding:10px 8px;font-weight:700;font-family:var(--f-display);font-size:1.02rem;min-width:0;color:var(--muted)}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12),inset 0 -3px 0 var(--accent)}
+.tab .ts{display:none}
+.shell.solo{grid-template-columns:minmax(0,1fr)}
+.shell.solo nav.side{display:none}
+.chip:empty{display:none}
+.imcbox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px dashed var(--line);border-radius:8px;background:var(--surface-2)}
+.imcbox .val{font-family:var(--f-mono);font-size:1.5rem;font-weight:700}
+@media (max-width:700px){.tab .tl,.tab .chip{display:none}.tab .ts{display:inline}.tab{font-size:.92rem;padding:9px 4px}}
 .alert[data-sev="1"]{color:var(--sev1)} .alert[data-sev="2"]{color:var(--sev2)} .alert[data-sev="3"]{color:var(--sev3)}
 
 /* Itch */
@@ -296,7 +307,7 @@ img{max-width:100%}
 <header class="top">
   <div class="brand">
     <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="var(--accent)"/><path d="M9 25c3-9 9-13 14-12s8 6 5 11-11 6-15 4" fill="none" stroke="var(--surface)" stroke-width="2.6" stroke-linecap="round"/><circle cx="20" cy="20" r="2" fill="var(--surface)"/><circle cx="25" cy="17" r="1.3" fill="var(--surface)"/></svg>
-    <div><h1>Escalas de Psoriasis</h1><p>Gravedad, localizaciones especiales y calidad de vida</p></div>
+    <div><h1>Escalas de Psoriasis</h1><p>Gravedad, calidad de vida y riesgo cardiometabólico</p></div>
   </div>
   <form class="patient" id="patientForm">
     <div class="field"><label for="p-name">Paciente / NHC</label><input id="p-name" data-path="patient.name" placeholder="Nombre o identificador" size="20"></div>
@@ -308,8 +319,13 @@ img{max-width:100%}
 </header>
 <div class="banner" id="exampleBanner" hidden><span><b>Datos de ejemplo.</b> Son valores ficticios para mostrar el funcionamiento; pulsa «Nueva evaluación» para empezar con un paciente real.</span></div>
 
+<nav class="tabs" id="tabs" aria-label="Módulos">
+  <button type="button" class="tab" data-tab="pso" aria-selected="true"><span class="tl">Escalas de psoriasis</span><span class="ts">Psoriasis</span><span class="chip" data-chip="tab-pso">—</span></button>
+  <button type="button" class="tab" data-tab="met" aria-selected="false"><span class="tl">Riesgo cardiometabólico</span><span class="ts">Cardiometabólico</span><span class="chip" data-chip="tab-met">—</span></button>
+  <button type="button" class="tab" data-tab="inf" aria-selected="false"><span class="tl">Informe para la historia</span><span class="ts">Informe</span></button>
+</nav>
 <div class="shell">
-  <nav class="side" id="nav" aria-label="Escalas"></nav>
+  <nav class="side" id="nav" aria-label="Apartados"></nav>
   <main id="main"></main>
 </div>
 <div id="printReport" class="print-only" aria-hidden="true"></div>
@@ -581,11 +597,13 @@ const habitsCard = () => `<div class="card"><div class="card-h"><h3>Hábitos</h3
 
 /* Riesgo cardiometabólico: exploración y analítica */
 const METAB_GROUPS = [
-  ["Antropometría y presión arterial", [["weight", "Peso", "kg"], ["height", "Talla", "cm"], ["waist", "Perímetro de cintura", "cm", "H < 102 · M < 88"], ["sbp", "PA sistólica", "mmHg"], ["dbp", "PA diastólica", "mmHg"]], [["txHta", "En tratamiento antihipertensivo"]]],
+  ["Antropometría y presión arterial", [["weight", "Peso", "kg"], ["height", "Talla", "cm"], ["waist", "Perímetro de cintura", "cm", "H < 102 · M < 88"], ["sbp", "PA sistólica", "mmHg"], ["dbp", "PA diastólica", "mmHg"]], [["txHta", "En tratamiento antihipertensivo"]],
+    `<div class="imcbox"><span class="eyebrow">IMC calculado</span><span><span class="val" data-out="m-imc">—</span> <span class="small muted">kg/m²</span></span><span class="sevpill" data-sevout="m-imc">—</span></div>`],
   ["Eje glucémico", [["glu", "Glucosa basal", "mg/dL", "< 100"], ["hba1c", "HbA1c", "%", "< 5,7"], ["ins", "Insulina basal (opcional)", "µU/mL", "para HOMA-IR"]], [["txDm", "Diabetes diagnosticada o en tratamiento"]]],
-  ["Perfil lipídico", [["tc", "Colesterol total", "mg/dL"], ["hdl", "c-HDL", "mg/dL", "H ≥ 40 · M ≥ 50"], ["ldl", "c-LDL", "mg/dL"], ["tg", "Triglicéridos", "mg/dL", "< 150"]], [["txLip", "En tratamiento hipolipemiante (estatinas / fibratos)"]]],
+  ["Perfil lipídico", [["tc", "Colesterol total", "mg/dL"], ["hdl", "c-HDL", "mg/dL", "H ≥ 40 · M ≥ 50"], ["ldl", "c-LDL", "mg/dL"], ["tg", "Triglicéridos", "mg/dL", "< 150"], ["lpa", "Lipoproteína(a) · Lp(a)", `<span data-out="lpaU">mg/dL</span>`, "< 30 mg/dL · < 75 nmol/L"]], [["txLip", "En tratamiento hipolipemiante (estatinas / fibratos)"]],
+    `<div class="field"><label>Unidad de la Lp(a)</label>${seg("metab.lpaU", [["mg", "mg/dL"], ["nmol", "nmol/L"]])}</div>`],
   ["Perfil hepático (MASLD · FIB-4)", [["ast", "AST / GOT", "U/L"], ["alt", "ALT / GPT", "U/L"], ["ggt", "GGT", "U/L"], ["plt", "Plaquetas", "×10³/µL"]], []],
-  ["Función renal, ácido úrico e inflamación", [["cr", "Creatinina", "mg/dL"], ["uric", "Ácido úrico", "mg/dL", "H ≤ 7 · M ≤ 6"], ["uacr", "Albúmina/creatinina en orina", "mg/g", "< 30"], ["crp", "PCR", "mg/L"]], []],
+  ["Función renal, ácido úrico e inflamación", [["cr", "Creatinina", "mg/dL"], ["uric", "Ácido úrico", "mg/dL", "H ≤ 7 · M ≤ 6"], ["uacr", "Albúmina/creatinina en orina", "mg/g", "< 30"], ["crp", "PCR", "mg/L"], ["esr", "VSG", "mm/h"]], []],
   ["Hemograma · fórmula leucocitaria (índices de inflamación sistémica)", [["neu", "Neutrófilos", "×10³/µL"], ["lym", "Linfocitos", "×10³/µL"], ["mono", "Monocitos", "×10³/µL"]], []],
 ];
 const METAB_KEYS = ["age", ...METAB_GROUPS.flatMap(g => g[1].map(f => f[0]))];
@@ -630,7 +648,7 @@ function emptyState() {
     itch: null,
     pure4: Array(4).fill(null),
     habits: { tobacco: null, alcohol: null, sport: null },
-    metab: Object.assign(Object.fromEntries(METAB_KEYS.map(k => [k, null])), { sex: null, txHta: false, txDm: false, txLip: false, mult: false }),
+    metab: Object.assign(Object.fromEntries(METAB_KEYS.map(k => [k, null])), { sex: null, txHta: false, txDm: false, txLip: false, mult: false, lpaU: "mg" }),
     crit: { systemic: false, erythro: false, gpp: false, lpp: false, face: false, psa: false, topfail: false },
   };
 }
@@ -647,7 +665,7 @@ function exampleState() {
   s.pure4 = [0, 1, 0, 0];
   s.habits = { tobacco: 1, alcohol: 0, sport: 0 };
   s.metab = { age: 52, sex: "H", weight: 96, height: 174, waist: 108, sbp: 138, dbp: 88, txHta: false, glu: 112, hba1c: 6.1, ins: 14.5, txDm: false,
-    tc: 228, hdl: 36, ldl: 142, tg: 215, txLip: false, ast: 42, alt: 58, ggt: 74, plt: 165, cr: 1.05, uric: 7.6, uacr: 18, crp: 6.4, neu: 5.2, lym: 1.6, mono: 0.62, mult: true };
+    tc: 228, hdl: 36, ldl: 142, tg: 215, txLip: false, ast: 42, alt: 58, ggt: 74, plt: 165, cr: 1.05, uric: 7.6, uacr: 18, crp: 6.4, neu: 5.2, lym: 1.6, mono: 0.62, mult: true, lpa: 72, lpaU: "mg", esr: 18 };
   return s;
 }
 const STORE = "psoriasis-escalas-v1";
@@ -832,6 +850,18 @@ function sevRegicor(v) { return v == null ? [0, "—"] : v < 5 ? [1, "Riesgo baj
 const IMPL_S2 = ["", "En general no se recomienda tratamiento farmacológico de los factores de riesgo; insistir en el estilo de vida.", "Debe considerarse el tratamiento de los factores de riesgo (lípidos y presión arterial).", "Se recomienda el tratamiento de los factores de riesgo (lípidos y presión arterial)."];
 const IMPL_REG = ["", "Mantener hábitos saludables y reevaluar periódicamente.", "Control de los factores de riesgo y del estilo de vida; valorar tratamiento si coexisten otros factores.", "Valorar tratamiento hipolipemiante y control estricto de los factores de riesgo.", "Tratamiento hipolipemiante y control intensivo de todos los factores de riesgo."];
 function sevUACR(v) { return v == null ? [0, "—"] : v < 30 ? [1, "A1 · normal o ligeramente aumentada"] : v <= 300 ? [2, "A2 · moderadamente aumentada"] : [3, "A3 · gravemente aumentada"]; }
+function lpaEval(R) {
+  if (R.lpa == null) return null;
+  const nm = (S.metab || {}).lpaU === "nmol", c = nm ? [75, 125, 430] : [30, 50, 180], u = nm ? "nmol/L" : "mg/dL", v = R.lpa;
+  const sv = v >= c[2] ? [4, `Muy elevada (≥ ${c[2]})`] : v > c[1] ? [3, `Elevada (> ${c[1]})`] : v >= c[0] ? [2, `Zona gris (${c[0]}–${c[1]})`] : [1, `No aumentada (< ${c[0]})`];
+  return { v, u, sv };
+}
+function sevCRP(v) { return v == null ? [0, "—"] : v > 10 ? [3, "Muy elevada (> 10): inflamación activa o infección"] : v > 3 ? [3, "Elevada (> 3): riesgo cardiovascular alto"] : v >= 1 ? [2, "Intermedia (1–3)"] : [1, "Baja (< 1)"]; }
+function sevESR(v, age, fem) {
+  if (v == null) return [0, "—"];
+  const lim = age != null ? (fem ? (age + 10) / 2 : age / 2) : (fem ? 20 : 15);
+  return v > 100 ? [3, "Muy elevada (> 100)"] : v > lim ? [2, `Elevada (> ${fmt(lim, 0)})`] : [1, `Normal (≤ ${fmt(lim, 0)})`];
+}
 const kdigoG = v => v == null ? null : v >= 90 ? "G1" : v >= 60 ? "G2" : v >= 45 ? "G3a" : v >= 30 ? "G3b" : v >= 15 ? "G4" : "G5";
 const kdigoA = v => v == null ? null : v < 30 ? "A1" : v <= 300 ? "A2" : "A3";
 function sevPASI(v) { return v <= 0 ? [0, "Sin lesiones"] : v < 10 ? [1, "Leve (<10)"] : [3, "Moderada-grave (≥10)"]; }
@@ -873,23 +903,29 @@ function scorebox(id, max, extra = "") {
 }
 
 const SECTIONS = [
-  { g: "Escalas generales", k: "bsa", n: "BSA", sub: "Superficie corporal" },
-  { g: "Escalas generales", k: "pasi", n: "PASI", sub: "Intensidad y extensión" },
-  { g: "Escalas generales", k: "pga", n: "PGA", sub: "Evaluación global del médico" },
-  { g: "Escalas generales", k: "dlqi", n: "DLQI", sub: "Calidad de vida" },
-  { g: "Escalas generales", k: "itch", n: "EVA del picor", sub: "Intensidad del prurito" },
-  { g: "Localizaciones especiales", k: "napsi", n: "NAPSI", sub: "Uñas" },
-  { g: "Localizaciones especiales", k: "pssi", n: "PSSI", sub: "Cuero cabelludo" },
-  { g: "Localizaciones especiales", k: "ppasi", n: "PPASI", sub: "Palmas y plantas" },
-  { g: "Localizaciones especiales", k: "genital", n: "GPSI · s-PGA-G", sub: "Área genital" },
-  { g: "Comorbilidad", k: "pure4", n: "PURE-4", sub: "Cribado de artritis psoriásica" },
-  { g: "Comorbilidad", k: "metab", n: "Riesgo cardiometabólico", sub: "Síndrome metabólico, FIB-4, FGe" },
-  { g: "Informe", k: "summary", n: "Resumen", sub: "Clasificación de gravedad" },
+  { t: "pso", g: "Escalas generales", k: "bsa", n: "BSA", sub: "Superficie corporal" },
+  { t: "pso", g: "Escalas generales", k: "pasi", n: "PASI", sub: "Intensidad y extensión" },
+  { t: "pso", g: "Escalas generales", k: "pga", n: "PGA", sub: "Evaluación global del médico" },
+  { t: "pso", g: "Escalas generales", k: "dlqi", n: "DLQI", sub: "Calidad de vida" },
+  { t: "pso", g: "Escalas generales", k: "itch", n: "EVA del picor", sub: "Intensidad del prurito" },
+  { t: "pso", g: "Localizaciones especiales", k: "napsi", n: "NAPSI", sub: "Uñas" },
+  { t: "pso", g: "Localizaciones especiales", k: "pssi", n: "PSSI", sub: "Cuero cabelludo" },
+  { t: "pso", g: "Localizaciones especiales", k: "ppasi", n: "PPASI", sub: "Palmas y plantas" },
+  { t: "pso", g: "Localizaciones especiales", k: "genital", n: "GPSI · s-PGA-G", sub: "Área genital" },
+  { t: "pso", g: "Comorbilidad", k: "pure4", n: "PURE-4", sub: "Cribado de artritis psoriásica" },
+  { t: "pso", g: "Valoración", k: "summary", n: "Clasificación", sub: "Gravedad según AEDV, AAD-NPF e IPC" },
+  { t: "met", g: "Datos del paciente", k: "mdata", n: "Datos y exploración", sub: "Edad, sexo, hábitos, IMC, PA" },
+  { t: "met", g: "Datos del paciente", k: "mlab", n: "Analítica", sub: "Glucemia, lípidos, Lp(a), hígado, riñón, PCR, VSG, hemograma" },
+  { t: "met", g: "Resultados", k: "metab", n: "Síndrome metabólico", sub: "Índices, criterios y alertas" },
+  { t: "met", g: "Resultados", k: "cvrisk", n: "Riesgo cardiovascular", sub: "Castelli, Lp(a), SCORE2, REGICOR" },
+  { t: "met", g: "Resultados", k: "inflam", n: "Inflamación y riñón", sub: "PCR, VSG, NLR, SII, CACu" },
+  { t: "met", g: "Herramientas", k: "labreq", n: "Petición de analítica", sub: "Texto para el volante" },
+  { t: "inf", g: "Informe", k: "informe", n: "Informe", sub: "Texto para la historia clínica" },
 ];
 
 function buildNav() {
-  const groups = [...new Set(SECTIONS.map(s => s.g))];
-  $("#nav").innerHTML = groups.map(g => `<div class="navgroup"><span class="eyebrow">${g}</span>` + SECTIONS.filter(s => s.g === g).map(s => `<button type="button" class="navbtn" data-go="${s.k}"><span class="nm">${s.n}<small>${s.sub}</small></span><span class="chip" data-chip="${s.k}">—</span></button>`).join("") + `</div>`).join("");
+  const groups = [...new Map(SECTIONS.map(s => [s.t + "|" + s.g, s])).values()];
+  $("#nav").innerHTML = groups.map(G => `<div class="navgroup" data-tab="${G.t}"><span class="eyebrow">${G.g}</span>` + SECTIONS.filter(s => s.t === G.t && s.g === G.g).map(s => `<button type="button" class="navbtn" data-go="${s.k}"><span class="nm">${s.n}<small>${s.sub}</small></span><span class="chip" data-chip="${s.k}">—</span></button>`).join("") + `</div>`).join("");
 }
 
 function bodyMap() {
@@ -916,15 +952,19 @@ function riskCards() {
   <div class="implic" data-out="r-castMsg"></div><p class="note">Riesgo elevado: Castelli I > 5 (H) / > 4,5 (M); Castelli II > 3,5 (H) / > 3 (M) (Millán et al. 2009).</p></div>
   <div class="card"><div class="card-h"><h3>Índices glucometabólicos</h3></div><div class="kpis">${kpi("homa", "HOMA-IR")}${kpi("tyg", "Triglicéridos/glucosa · TyG")}</div>
   <p class="formula">TyG = ln [TG (mg/dL) × glucosa (mg/dL) / 2]</p><div class="implic" data-out="r-gluMsg"></div><p class="note">Resistencia a la insulina: HOMA-IR ≥ 2,5; TyG ≥ 8,5 (orientativo; el punto de corte varía según la población, 8,5–8,8).</p></div></div>
-  <div class="card"><div class="card-h"><h3>Riesgo cardiovascular a 10 años</h3><span class="small muted">Región europea de bajo riesgo (España)</span></div><div class="kpis">${kpi("s2", "SCORE2", "%")}${kpi("reg", "REGICOR", "%")}</div>
+<!--SPLIT-->  <div class="card"><div class="card-h"><h3>Riesgo cardiovascular a 10 años</h3><span class="small muted">Región europea de bajo riesgo (España)</span></div><div class="kpis">${kpi("s2", "SCORE2", "%")}${kpi("reg", "REGICOR", "%")}</div>
   <div class="checks"><label><input type="checkbox" data-path="metab.mult" data-bool="1"><span><b>Multiplicador de riesgo en inflamación crónica (× 1,5).</b> En enfermedades inflamatorias sistémicas no incluidas explícitamente en SCORE2 (psoriasis grave, hidradenitis supurativa…), las guías europeas recomiendan multiplicar por 1,5 el riesgo calculado.</span></label></div>
-  <p class="note" data-out="r-multHint"></p><div class="critlist" data-out="r-cvMsg"></div>
+  <p class="note" data-out="r-multHint"></p><div class="critlist" data-out="r-cvMsg"></div><div class="implic" data-out="r-cvMod"></div>
   <p class="note">SCORE2 (40–69 años) y SCORE2-OP (≥ 70 años) estiman eventos cardiovasculares mortales y no mortales (ESC 2021); umbrales de riesgo alto / muy alto: < 50 años 2,5 / 7,5 %, 50–69 años 5 / 10 %, ≥ 70 años 7,5 / 15 %. No se aplican en enfermedad cardiovascular establecida, diabetes (SCORE2-Diabetes) ni enfermedad renal crónica. REGICOR (35–74 años) estima eventos coronarios en población española: < 5 % bajo, 5–9,9 % moderado, 10–14,9 % alto, ≥ 15 % muy alto. El tabaquismo se toma de «Hábitos».</p></div>
-  <div class="card"><div class="card-h"><h3>Inflamación sistémica · inmunotrombosis</h3><span class="small muted">A partir del hemograma</span></div><div class="kpis">${kpi("nlr", "NLR · neutrófilo/linfocito")}${kpi("sii", "SII")}${kpi("siri", "SIRI")}${kpi("mhr", "MHR · monocito/c-HDL")}${kpi("piv", "PIV / AISI")}</div>
+<!--SPLIT-->  <div class="card"><div class="card-h"><h3>Inflamación sistémica · inmunotrombosis</h3><span class="small muted">A partir del hemograma</span></div><div class="kpis">${kpi("nlr", "NLR · neutrófilo/linfocito")}${kpi("sii", "SII")}${kpi("siri", "SIRI")}${kpi("mhr", "MHR · monocito/c-HDL")}${kpi("piv", "PIV / AISI")}</div>
   <p class="formula">NLR = N/L · SII = P × N/L · SIRI = N × M/L · MHR = M (células/µL) / c-HDL (mg/dL) · PIV (AISI) = N × P × M/L  — recuentos en ×10³/µL</p>
   <div class="implic" data-out="r-infMsg"></div><p class="note">Puntos de corte orientativos, sin consenso universal: NLR > 3, SII > 600, SIRI > 1,2, MHR > 11, PIV > 300. Son más útiles para seguir la evolución del mismo paciente que como valor aislado.</p></div>
-  <div class="card"><div class="card-h"><h3>Cociente albúmina/creatinina en orina (CACu / UACR)</h3><span class="small muted">KDIGO</span></div><div class="kpis">${kpi("uacr", "CACu", "mg/g")}${kpi("kdigo", "Estadio KDIGO (FGe × CACu)")}</div><div class="implic" data-out="r-uacrMsg"></div>
-  <p class="note">A1 < 30 mg/g · A2 30–300 mg/g · A3 > 300 mg/g. La albuminuria debe confirmarse en 2 de 3 muestras en 3–6 meses.</p></div>`;
+<!--SPLIT-->  <div class="card"><div class="card-h"><h3>Cociente albúmina/creatinina en orina (CACu / UACR)</h3><span class="small muted">KDIGO</span></div><div class="kpis">${kpi("uacr", "CACu", "mg/g")}${kpi("kdigo", "Estadio KDIGO (FGe × CACu)")}</div><div class="implic" data-out="r-uacrMsg"></div>
+  <p class="note">A1 < 30 mg/g · A2 30–300 mg/g · A3 > 300 mg/g. La albuminuria debe confirmarse en 2 de 3 muestras en 3–6 meses.</p></div>
+<!--SPLIT--><div class="card"><div class="card-h"><h3>Lipoproteína(a) · Lp(a)</h3><span class="small muted">Factor de riesgo cardiovascular independiente</span></div><div class="kpis">${kpi("lpa", "Lp(a)", `<span data-out="lpaU">mg/dL</span>`)}</div><div class="implic" data-out="r-lpaMsg"></div>
+  <p class="note">Consenso ESC/EAS 2022: < 30 mg/dL (< 75 nmol/L) riesgo no aumentado · 30–50 mg/dL (75–125 nmol/L) zona gris · > 50 mg/dL (> 125 nmol/L) riesgo aumentado · ≥ 180 mg/dL (≥ 430 nmol/L) riesgo comparable al de la hipercolesterolemia familiar heterocigota. Se recomienda medirla al menos una vez en la vida. Se introduce en «Analítica · Perfil lipídico».</p></div>
+<!--SPLIT--><div class="card"><div class="card-h"><h3>Reactantes de fase aguda · PCR y VSG</h3></div><div class="kpis">${kpi("crp", "PCR", "mg/L")}${kpi("esr", "VSG", "mm/h")}</div><div class="implic" data-out="r-crpMsg"></div>
+  <p class="note">PCR (categorías AHA/CDC, en situación estable): < 1 mg/L riesgo cardiovascular bajo, 1–3 mg/L intermedio, > 3 mg/L alto; > 10 mg/L sugiere inflamación activa o infección (repetir en 2 semanas). VSG: límite superior normal según la edad (Miller): hombres edad/2, mujeres (edad + 10)/2. Se introducen en «Analítica».</p></div>`;
 }
 
 function buildMain() {
@@ -1065,35 +1105,45 @@ function buildMain() {
   /* ---------- Riesgo cardiometabólico ---------- */
   const mField = ([k, n, u, ref]) => `<div class="field"><label for="m-${k}">${n}${ref ? ` <span class="ref">(${ref})</span>` : ""}</label><div class="unitin"><input id="m-${k}" inputmode="decimal" data-path="metab.${k}" data-lab="1"><span>${u}</span></div></div>`;
   const mChecks = cs => cs.length ? `<div class="checks">` + cs.map(([k, t]) => `<label><input type="checkbox" data-path="metab.${k}" data-bool="1"><span>${t}</span></label>`).join("") + `</div>` : "";
-  h += `<section class="panel" id="sec-metab" data-sec="metab">
-  <div class="phead"><div class="intro"><span class="eyebrow">Comorbilidad · evaluación cardiometabólica</span><h2>Riesgo cardiometabólico</h2>
-  <p>Exploración y analítica para el cribado del síndrome metabólico, la enfermedad hepática metabólica (MASLD) y la función renal, con los condicionantes para elegir el tratamiento sistémico o biológico.</p></div>
-  ${scorebox({ label: "Síndrome metabólico", key: "sm" }, "/ 5")}</div>
+  const phead = (eb, t, d, box = "") => `<div class="phead"><div class="intro"><span class="eyebrow">${eb}</span><h2>${t}</h2><p>${d}</p></div>${box}</div>`;
+  const mCard = ([t, fs, cs, extra]) => `<div class="card"><div class="card-h"><h3>${t}</h3></div><div class="fields">${fs.map(mField).join("")}</div>${extra || ""}${mChecks(cs)}</div>`;
+  const [rAt, rCv, rInf, rUacr, rLpa, rCrp] = riskCards().split("<!--SPLIT-->");
+  h += `<section class="panel" id="sec-mdata" data-sec="mdata">${phead("Riesgo cardiometabólico · datos", "Datos y exploración", "Edad, sexo, hábitos, antropometría y presión arterial. El IMC se calcula automáticamente con el peso y la talla.")}
   <div class="grid2"><div class="card"><div class="card-h"><h3>Datos base</h3></div><div class="fields">${mField(["age", "Edad", "años"])}
   <div class="field"><label>Sexo biológico</label>${seg("metab.sex", [["H", "Hombre"], ["M", "Mujer"]])}</div></div>
   <p class="note">La edad y el sexo son necesarios para el FIB-4, el FGe y los puntos de corte de cintura, c-HDL y ácido úrico.</p></div>
   ${habitsCard()}</div>`
-    + METAB_GROUPS.map(([t, fs, cs]) => `<div class="card"><div class="card-h"><h3>${t}</h3></div><div class="fields">${fs.map(mField).join("")}</div>${mChecks(cs)}</div>`).join("")
+    + mCard(METAB_GROUPS[0]) + `</section>`;
+  h += `<section class="panel" id="sec-mlab" data-sec="mlab">${phead("Riesgo cardiometabólico · datos", "Analítica", "Valores de laboratorio. Cada índice se calcula en cuanto están disponibles los datos que necesita.")}` + METAB_GROUPS.slice(1).map(mCard).join("") + `</section>`;
+  h += `<section class="panel" id="sec-metab" data-sec="metab">${phead("Riesgo cardiometabólico · resultados", "Síndrome metabólico y alertas", "Índices calculados, criterios NCEP-ATP III y condicionantes para elegir el tratamiento sistémico o biológico.", scorebox({ label: "Síndrome metabólico", key: "sm" }, "/ 5"))}`
     + `<div class="card"><div class="card-h"><h3>Índices calculados</h3></div><div class="kpis">`
     + [["imc", "IMC", "kg/m²"], ["fib4", "FIB-4", ""], ["fge", "FGe CKD-EPI", "mL/min/1,73 m²"], ["nohdl", "Col. no-HDL", "mg/dL"], ["homa", "HOMA-IR", ""]].map(([k, n, u]) => `<div class="kpi"><span class="eyebrow">${n}</span><span><span class="val" data-out="m-${k}">—</span> <span class="small muted">${u}</span></span><span class="sevpill" data-sevout="m-${k}">—</span></div>`).join("")
     + `</div><p class="formula">FIB-4 = edad × AST / (plaquetas × √ALT) · HOMA-IR = glucosa (mg/dL) × insulina / 405</p></div>
   <div class="grid2"><div class="card"><div class="card-h"><h3>Criterios de síndrome metabólico</h3><span class="small muted">NCEP-ATP III · ≥ 3 confirma</span></div><div class="critlist" data-out="smList"></div></div>
   <div class="card"><div class="card-h"><h3>Alertas terapéuticas</h3></div><div class="critlist" data-out="mAlerts"></div></div></div>
-  ${riskCards()}
+  </section>`;
+  h += `<section class="panel" id="sec-cvrisk" data-sec="cvrisk">${phead("Riesgo cardiometabólico · resultados", "Riesgo cardiovascular", "Riesgo aterogénico, índices glucometabólicos, lipoproteína(a) y riesgo cardiovascular a 10 años (SCORE2 y REGICOR).")}${rAt}${rLpa}${rCv}</section>`;
+  h += `<section class="panel" id="sec-inflam" data-sec="inflam">${phead("Riesgo cardiometabólico · resultados", "Inflamación sistémica y función renal", "Reactantes de fase aguda, índices de inflamación sistémica e inmunotrombosis y albuminuria.")}${rCrp}${rInf}${rUacr}</section>`;
+  h += `<section class="panel" id="sec-labreq" data-sec="labreq">${phead("Riesgo cardiometabólico · herramientas", "Petición de analítica", "Texto listo para copiar en el volante de laboratorio o el protocolo de enfermería.")}
   <div class="card"><div class="card-h"><h3>Petición de analítica</h3><button type="button" class="btn primary" id="copyLabBtn">Copiar solicitud</button></div><textarea class="out" id="labText" readonly aria-label="Solicitud de analítica" style="min-height:190px">${LAB_REQ}</textarea><span class="small muted" id="copyLabMsg" aria-live="polite"></span></div>
   </section>`;
 
   /* ---------- Resumen ---------- */
   h += `<section class="panel" id="sec-summary" data-sec="summary">
-  <div class="phead"><div class="intro"><span class="eyebrow">Informe</span><h2>Resumen y clasificación de la gravedad</h2>
+  <div class="phead"><div class="intro"><span class="eyebrow">Informe</span><h2>Clasificación de la gravedad</h2>
   <p>Combina un índice de intensidad/extensión (PASI, BSA, PGA), la calidad de vida (DLQI) y las localizaciones especiales, como recomiendan la AEDV y NICE.</p></div></div>
-  <div class="grid2"><div class="card"><div class="card-h"><h3>Puntuaciones</h3></div><div class="tablewrap"><table class="sumtable"><thead><tr><th>Escala</th><th>Valor</th><th>Interpretación</th></tr></thead><tbody data-out="sumTable"></tbody></table></div></div>
   <div class="card"><div class="card-h"><h3>Criterios clínicos adicionales</h3></div><div class="checks">
   ${[["systemic", "Requiere o ha requerido tratamiento sistémico (clásico, biológico o fototerapia)"], ["erythro", "Psoriasis eritrodérmica"], ["gpp", "Psoriasis pustulosa generalizada"], ["lpp", "Psoriasis pustulosa localizada con limitación funcional o psicológica"], ["face", "Afectación de cara u otras zonas expuestas (zona de alto impacto)"], ["psa", "Artritis psoriásica asociada"], ["topfail", "Fracaso del tratamiento tópico"]].map(([k, t]) => `<label><input type="checkbox" id="crit-${k}" data-path="crit.${k}" data-bool="1"><span>${t}</span></label>`).join("")}
-  </div><p class="note" data-out="specialHint"></p></div></div>
-  ${habitsCard()}
+  </div><p class="note" data-out="specialHint"></p></div>
   <div class="grid2" data-out="verdicts"></div>
-  <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="printBtn">Imprimir informe</button><button type="button" class="btn primary" id="copyBtn">Copiar texto</button></div></div><p class="note" id="printNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir el informe.</p><textarea class="out" id="sumText" readonly aria-label="Resumen en texto"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
+  </section>`;
+
+  /* ---------- Informe para la historia (pestaña 3) ---------- */
+  h += `<section class="panel" id="sec-informe" data-sec="informe">
+  <div class="phead"><div class="intro"><span class="eyebrow">Informe</span><h2>Informe para la historia clínica</h2>
+  <p>Recoge todos los datos de las pestañas «Escalas de psoriasis» y «Riesgo cardiometabólico». Copia el texto completo o solo una de las dos partes y pégalo en la historia clínica.</p></div></div>
+  <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="printBtn">Imprimir informe</button><button type="button" class="btn" id="copyPsoBtn">Copiar solo psoriasis</button><button type="button" class="btn" id="copyMetBtn">Copiar solo cardiometabólico</button><button type="button" class="btn primary" id="copyBtn">Copiar todo</button></div></div><p class="note" id="printNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir el informe.</p><textarea class="out" id="sumText" readonly aria-label="Resumen en texto" style="min-height:420px"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
+  <div class="card"><div class="card-h"><h3>Tabla de puntuaciones</h3></div><div class="tablewrap"><table class="sumtable"><thead><tr><th>Escala</th><th>Valor</th><th>Interpretación</th></tr></thead><tbody data-out="sumTable"></tbody></table></div></div>
   </section>`;
   M.innerHTML = h;
 }
@@ -1102,11 +1152,18 @@ function buildMain() {
    Actualización de la interfaz
    ============================================================ */
 let current = "pasi";
+// última sección visitada de cada pestaña principal
+let lastSec = { pso: "pasi", met: "mdata", inf: "informe" };
+try { Object.assign(lastSec, JSON.parse(localStorage.getItem(STORE + "-last") || "{}")); } catch (_) { }
 function show(k) {
-  current = k;
+  const sec = SECTIONS.find(s => s.k === k) || SECTIONS[1];
+  k = sec.k; current = k; lastSec[sec.t] = k;
   $$("section.panel").forEach(s => s.hidden = s.dataset.sec !== k);
   $$(".navbtn").forEach(b => b.setAttribute("aria-current", b.dataset.go === k ? "true" : "false"));
-  try { localStorage.setItem(STORE + "-tab", k); } catch (_) { }
+  $$(".navgroup").forEach(g => g.hidden = g.dataset.tab !== sec.t);
+  $$(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === sec.t ? "true" : "false"));
+  $(".shell").classList.toggle("solo", sec.t === "inf");
+  try { localStorage.setItem(STORE + "-tab", k); localStorage.setItem(STORE + "-last", JSON.stringify(lastSec)); } catch (_) { }
 }
 const out = (key, html) => $$(`[data-out="${key}"]`).forEach(el => { if (el.tagName === "TBODY" || el.classList.contains("grid2") || /<\w/.test(html)) el.innerHTML = html; else el.textContent = html; });
 const sevOut = (key, [lv, txt]) => $$(`[data-sevout="${key}"]`).forEach(el => { el.dataset.sev = lv; el.textContent = txt; });
@@ -1232,13 +1289,34 @@ function update() {
   const kd = kdigoG(R.fge) && kdigoA(R.uacr) ? kdigoG(R.fge) + kdigoA(R.uacr) : null, ua = sevUACR(R.uacr)[0];
   out("r-kdigo", kd || "—"); sevOut("r-kdigo", kd ? [Math.max(ua, R.fge < 60 ? 3 : R.fge < 90 ? 2 : 1), kd === "G1A1" || kd === "G2A1" ? "Sin criterio de ERC" : "Compatible con ERC"] : [0, R.uacr == null ? "—" : "Falta el FGe"]);
   out("r-uacrMsg", R.uacr == null ? para("Introduce el cociente albúmina/creatinina en orina (sección «Función renal»).") : ua === 1 ? para("Sin albuminuria significativa.") : ua === 2 ? para("<b>Albuminuria moderada</b> (antigua microalbuminuria): marcador precoz de daño endotelial y renal, asociado a mayor riesgo cardiovascular. Confirmar en 2 de 3 muestras; optimizar presión arterial y glucemia (valorar IECA/ARA-II o iSGLT2) y evitar nefrotóxicos (ciclosporina, AINE).") : para("<b>Albuminuria grave:</b> alto riesgo de progresión renal y cardiovascular. Valorar derivación a Nefrología y evitar nefrotóxicos (ciclosporina, AINE)."));
+  const LA = lpaEval(R);
+  out("lpaU", (S.metab || {}).lpaU === "nmol" ? "nmol/L" : "mg/dL");
+  out("r-lpa", LA ? fmt(LA.v, 0) : "—"); sevOut("r-lpa", LA ? LA.sv : [0, "—"]);
+  out("r-lpaMsg", !LA ? para("Introduce la Lp(a) en «Analítica · Perfil lipídico».") : LA.sv[0] >= 3 ? para("<b>Lp(a) elevada:</b> factor de riesgo cardiovascular causal e independiente, determinado genéticamente y poco modificable con la dieta o el ejercicio. Reclasifica el riesgo al alza: controlar de forma más estricta el resto de factores (c-LDL, presión arterial, tabaco) y valorar el cribado en familiares de primer grado." + (LA.sv[0] === 4 ? " Con estos valores el riesgo de por vida es comparable al de la hipercolesterolemia familiar heterocigota." : "")) : LA.sv[0] === 2 ? para("Zona gris: interpretar junto con el resto de factores de riesgo.") : para("Lp(a) no aumentada; no es necesario repetirla salvo cambio clínico."));
+  const mods = [LA && LA.sv[0] >= 3 && "Lp(a) elevada", R.crp > 3 && R.crp <= 10 && "PCR > 3 mg/L", R.uacr >= 30 && "albuminuria", R.smCount >= 3 && "síndrome metabólico"].filter(Boolean);
+  out("r-cvMod", mods.length ? para(`<b>Modificadores de riesgo presentes:</b> ${mods.join(", ")}. Pueden justificar reclasificar al paciente en una categoría de riesgo superior a la calculada.`) : "");
+  const crS = sevCRP(R.crp), esS = sevESR(R.esr, R.age, R.fem);
+  out("r-crp", R.crp == null ? "—" : fmt(R.crp, 1)); sevOut("r-crp", crS);
+  out("r-esr", R.esr == null ? "—" : fmt(R.esr, 0)); sevOut("r-esr", esS);
+  out("r-crpMsg", R.crp == null && R.esr == null ? para("Introduce la PCR y la VSG en «Analítica».") : [
+    R.crp == null ? "" : R.crp > 10 ? "<b>PCR > 10 mg/L:</b> sugiere inflamación activa o infección intercurrente; repetirla en situación estable para estimar el riesgo cardiovascular." : R.crp > 3 ? "<b>PCR elevada:</b> refleja la carga inflamatoria sistémica de la psoriasis y se asocia a mayor riesgo cardiovascular; suele descender con un tratamiento sistémico eficaz." : "PCR sin elevación significativa.",
+    R.esr == null ? "" : esS[0] >= 2 ? "<b>VSG elevada:</b> marcador inespecífico de inflamación (influyen la anemia, la edad, el sexo, el embarazo y la hipergammaglobulinemia); en la artritis psoriásica se relaciona con la actividad de la enfermedad." : "VSG normal para la edad y el sexo."
+  ].filter(Boolean).map(para).join(""));
+  const labKeys = METAB_KEYS.filter(k => !["age", "weight", "height", "waist", "sbp", "dbp"].includes(k)), nLab = labKeys.filter(k => R[k] != null).length;
+  chip("mdata", R.imc == null ? "—" : "IMC " + fmt(R.imc, 1), sevIMC(R.imc)[0]);
+  chip("mlab", nLab ? nLab + " datos" : "—", 0);
+  const cvS = X.s2adj != null ? sevScore2(X.s2adj, R.age) : sevRegicor(X.regadj);
+  chip("cvrisk", X.s2adj != null ? fmt(X.s2adj, 1) + " %" : X.regadj != null ? fmt(X.regadj, 1) + " %" : "—", Math.min(3, cvS[0]));
+  chip("inflam", X.nlr != null ? "NLR " + fmt(X.nlr, 1) : R.crp != null ? "PCR " + fmt(R.crp, 1) : "—", X.nlr != null ? sevNLR(X.nlr)[0] : crS[0]);
+  chip("labreq", "", 0); chip("informe", "", 0);
+  chip("tab-met", R.smEval ? `SM ${R.smCount}/5` : "—", smS[0]);
   chip("metab", R.smEval ? R.smCount + "/5" : "—", smS[0]);
 
   summary(C);
 }
 let lastPust = false;
 
-let LAST = null;
+let LAST = null, TXT = { all: "", pso: "", met: "" };
 function summary(C) {
   const rows = [];
   const pgaTxt = S.pga.ver === "dyn" ? (S.pga.dyn == null ? "—" : (S.pga.dyn > 0 ? "+" : "") + S.pga.dyn) : (S.pga[S.pga.ver] == null ? "—" : S.pga[S.pga.ver] + "/" + (PGA_SCALES[S.pga.ver].levels.length - 1));
@@ -1262,7 +1340,7 @@ function summary(C) {
   const R = C.m;
   if (R.any) {
     const f = (v, d = 1) => v == null ? "—" : fmt(v, d);
-    rows.push(["g", "Riesgo cardiometabólico"]);
+    rows.push(["g", "Exploración y analítica"]);
     if (R.age != null || R.sex) rows.push(["Edad / sexo", [R.age != null ? R.age + " años" : "", R.sex ? (R.fem ? "mujer" : "hombre") : ""].filter(Boolean).join(", "), "—"]);
     if (R.weight != null || R.height != null) rows.push(["IMC", R.imc == null ? "—" : `${f(R.imc)} kg/m²`, `${sevIMC(R.imc)[1]} (peso ${f(R.weight)} kg, talla ${f(R.height, 0)} cm)`]);
     if (R.waist != null) rows.push(["Perímetro de cintura", f(R.waist) + " cm", R.sm[0][1] === null ? "Indica el sexo" : R.sm[0][1] ? "Obesidad abdominal" : "Normal"]);
@@ -1276,15 +1354,18 @@ function summary(C) {
     if (R.cr != null) rows.push(["Función renal", `Cr ${f(R.cr, 2)} mg/dL`, R.fge == null ? "FGe no calculable (faltan edad o sexo)" : `FGe ${f(R.fge, 0)} mL/min/1,73 m²: ${sevFGe(R.fge)[1]}`]);
     if (R.uacr != null) rows.push(["Albúmina/creatinina en orina", f(R.uacr, 0) + " mg/g", R.uacr >= 30 ? "Albuminuria (≥ 30)" : "Normal"]);
     if (R.uric != null) rows.push(["Ácido úrico", f(R.uric) + " mg/dL", R.uric > (R.fem ? 6 : 7) ? "Hiperuricemia" : "Normal"]);
-    if (R.crp != null) rows.push(["PCR", f(R.crp) + " mg/L", "—"]);
+    if (R.crp != null) rows.push(["PCR", f(R.crp) + " mg/L", sevCRP(R.crp)[1]]);
+    if (R.esr != null) rows.push(["VSG", f(R.esr, 0) + " mm/h", sevESR(R.esr, R.age, R.fem)[1]]);
     rows.push(["Síndrome metabólico (NCEP-ATP III)", R.smEval ? R.smCount + " / 5" : "—", sevSM(R)[1]]);
   }
   const X = C.r;
-  if (X.any) {
+  if (X.any || R.lpa != null) {
     const f = (v, d = 1) => v == null ? "—" : fmt(v, d);
     rows.push(["g", "Riesgo cardiovascular e inflamación sistémica"]);
     if (X.cast1 != null) rows.push(["Castelli I (CT/c-HDL)", f(X.cast1, 2), sevCast1(X.cast1, R.fem)[1]]);
     if (X.cast2 != null) rows.push(["Castelli II (c-LDL/c-HDL)", f(X.cast2, 2), sevCast2(X.cast2, R.fem)[1]]);
+    const LA = lpaEval(R);
+    if (LA) rows.push(["Lipoproteína(a)", `${f(LA.v, 0)} ${LA.u}`, LA.sv[1] + (LA.sv[0] >= 3 ? ": factor de riesgo cardiovascular independiente; reclasifica el riesgo al alza" : "")]);
     if (X.tyg != null) rows.push(["Índice TyG", f(X.tyg, 2), sevTyG(X.tyg)[1] + (R.homa != null ? ` · HOMA-IR ${f(R.homa, 2)}` : "")]);
     const cvTxt = (raw, adj, why, sv, impl) => raw == null ? ["—", why] : [`${f(raw)} %` + (X.mult ? ` × 1,5 = ${f(adj)} %` : ""), `${sv[1]}. ${impl}`];
     if (X.s2 != null || R.any) { const t = cvTxt(X.s2, X.s2adj, X.s2why, sevScore2(X.s2adj, R.age), IMPL_S2[sevScore2(X.s2adj, R.age)[0]] || ""); rows.push([X.s2name + " (10 años)", t[0], t[1]]); }
@@ -1326,14 +1407,18 @@ function summary(C) {
     + v(ipc.length ? 3 : 1, "International Psoriasis Council", ipc.length ? "Candidato a tratamiento sistémico" : "Candidato a tratamiento tópico", ipc, ""));
   const noData = C.bsa === 0 && C.pasi === 0 && C.dlqi == null && !aedv.length;
   chip("summary", noData ? "—" : aedv.length ? (grave ? "Grave" : "Mod-grave") : "Leve", noData ? 0 : aedv.length ? 3 : 1);
+  chip("tab-pso", noData ? "—" : aedv.length ? (grave ? "Grave" : "Mod-grave") : "Leve", noData ? 0 : aedv.length ? 3 : 1);
 
-  const L = [];
-  L.push(`EVALUACIÓN DE PSORIASIS — ${S.patient.name || "Paciente"} — ${S.patient.date || ""}`);
-  rows.forEach(r => { if (r[0] === "g") L.push("", r[1].toUpperCase()); else if (HABITS.some(h => h[1] === r[0])) L.push(`- ${r[0]}: ${r[1]}`); else L.push(`- ${r[0]}: ${r[1]} (${r[2]})`); });
-  L.push("", "CLASIFICACIÓN", `- AEDV: ${aedvTxt}${aedv.length ? " [" + aedv.join("; ") + "]" : ""}`, `- AAD-NPF: ${aad}${aadWhy.length ? " [" + aadWhy.join("; ") + "]" : ""}`, `- IPC: ${ipc.length ? "candidato a tratamiento sistémico [" + ipc.join("; ") + "]" : "candidato a tratamiento tópico"}`);
-  if (cr.psa) L.push("- Artritis psoriásica asociada");
-  if (R.alerts.length) { L.push("", "CONDICIONANTES TERAPÉUTICOS"); R.alerts.forEach(a => L.push(`- ${a[1]}: ${a[2]}`)); }
-  $("#sumText").value = L.join("\n");
+  const hi = rows.findIndex(r => r[0] === "g" && r[1] === "Hábitos");
+  const rPso = hi < 0 ? rows : rows.slice(0, hi), rMet = hi < 0 ? [] : rows.slice(hi);
+  const asText = rs => rs.flatMap(r => r[0] === "g" ? ["", r[1].toUpperCase()] : HABITS.some(h => h[1] === r[0]) ? [`- ${r[0]}: ${r[1]}`] : [`- ${r[0]}: ${r[1]} (${r[2]})`]);
+  const head = `EVALUACIÓN DE PSORIASIS Y RIESGO CARDIOMETABÓLICO — ${S.patient.name || "Paciente"} — ${S.patient.date || ""}`;
+  const tPso = ["", "===== ESCALAS DE PSORIASIS =====", ...asText(rPso), "", "CLASIFICACIÓN DE LA GRAVEDAD", `- AEDV: ${aedvTxt}${aedv.length ? " [" + aedv.join("; ") + "]" : ""}`, `- AAD-NPF: ${aad}${aadWhy.length ? " [" + aadWhy.join("; ") + "]" : ""}`, `- IPC: ${ipc.length ? "candidato a tratamiento sistémico [" + ipc.join("; ") + "]" : "candidato a tratamiento tópico"}`];
+  if (cr.psa) tPso.push("- Artritis psoriásica asociada");
+  const tMet = ["", "===== RIESGO CARDIOMETABÓLICO =====", ...asText(rMet)];
+  if (R.alerts.length) { tMet.push("", "CONDICIONANTES TERAPÉUTICOS"); R.alerts.forEach(a => tMet.push(`- ${a[1]}: ${a[2]}`)); }
+  TXT = { all: [head, ...tPso, ...tMet].join("\n"), pso: [head, ...tPso].join("\n"), met: [head, ...tMet].join("\n") };
+  $("#sumText").value = TXT.all;
   LAST = { C, rows, aedvTxt, aedv, aad, aadWhy, ipc };
 }
 
@@ -1341,11 +1426,12 @@ function summary(C) {
    Eventos
    ============================================================ */
 function parseVal(path, raw) {
-  if (path === "pga.ver" || path === "ppasi.mode" || path === "metab.sex") return raw;
+  if (path === "pga.ver" || path === "ppasi.mode" || path === "metab.sex" || path === "metab.lpaU") return raw;
   if (raw === "np") return "np";
   return raw.includes(".") ? parseFloat(raw) : parseInt(raw, 10);
 }
 document.addEventListener("click", e => {
+  const tb = e.target.closest("button.tab"); if (tb) { show(lastSec[tb.dataset.tab]); window.scrollTo({ top: 0 }); return; }
   const go = e.target.closest("[data-go]"); if (go) { show(go.dataset.go); window.scrollTo({ top: 0 }); return; }
   const st = e.target.closest("[data-step]");
   if (st) { const r = BSA_REGIONS.find(x => x.k === st.dataset.step); S.bsa[r.k] = Math.max(0, Math.min(r.max, (+S.bsa[r.k] || 0) + parseFloat(st.dataset.d))); S.example = false; update(); return; }
@@ -1463,7 +1549,14 @@ function copyFrom(ta, msg) {
   const fallback = () => { ta.focus(); ta.select(); msg.textContent = "Texto seleccionado: pulsa Ctrl+C (o ⌘+C) para copiarlo."; };
   try { navigator.clipboard.writeText(ta.value).then(() => { msg.textContent = "Copiado al portapapeles."; }, fallback); } catch (_) { fallback(); }
 }
-$("#copyBtn").addEventListener("click", () => copyFrom($("#sumText"), $("#copyMsg")));
+function copyText(text, label) {
+  const ta = $("#sumText"), msg = $("#copyMsg");
+  const fallback = () => { ta.value = text; ta.focus(); ta.select(); msg.textContent = "Texto seleccionado: pulsa Ctrl+C (o ⌘+C) para copiarlo."; };
+  try { navigator.clipboard.writeText(text).then(() => { msg.textContent = label + " copiado al portapapeles."; }, fallback); } catch (_) { fallback(); }
+}
+$("#copyBtn").addEventListener("click", () => copyText(TXT.all, "Informe completo"));
+$("#copyPsoBtn").addEventListener("click", () => copyText(TXT.pso, "Bloque de psoriasis"));
+$("#copyMetBtn").addEventListener("click", () => copyText(TXT.met, "Bloque cardiometabólico"));
 $("#copyLabBtn").addEventListener("click", () => copyFrom($("#labText"), $("#copyLabMsg")));
 lastPust = false;
 
