@@ -329,7 +329,7 @@ img{max-width:100%}
   <main id="main"></main>
 </div>
 <div id="printReport" class="print-only" aria-hidden="true"></div>
-<p class="disclaimer">Herramienta de apoyo para el cálculo de índices. Las imágenes son ilustraciones esquemáticas recreadas por ordenador con fines orientativos y no sustituyen a la exploración ni al juicio clínico. Fuentes: Grupo de Psoriasis AEDV (2016); Daudén et al. JEADV 2016; NICE CG153; Menter et al. JAAD 2019; Strober et al. JAAD 2020 (IPC); Rich &amp; Scher JAAD 2003 (NAPSI); Langley et al. 2015 (IGA); Finlay &amp; Khan 1994 (DLQI © Cardiff University); Reich et al. 2012 (NRS prurito). Los datos se guardan solo en este navegador.</p>
+<p class="disclaimer">Herramienta de apoyo para el cálculo de índices. Las imágenes son ilustraciones esquemáticas recreadas por ordenador con fines orientativos y no sustituyen a la exploración ni al juicio clínico. Fuentes: Grupo de Psoriasis AEDV (2016); Daudén et al. JEADV 2016; NICE CG153; Menter et al. JAAD 2019; Strober et al. JAAD 2020 (IPC); Rich &amp; Scher JAAD 2003 (NAPSI); Langley et al. 2015 (IGA); Finlay &amp; Khan 1994 (DLQI © Cardiff University); Reich et al. 2012 (NRS prurito); Mach et al. 2020 (ESC/EAS); Gallagher et al. AJCN 2000 (grasa corporal). Los datos se guardan solo en este navegador.</p>
 
 <script>
 "use strict";
@@ -597,12 +597,12 @@ const habitsCard = () => `<div class="card"><div class="card-h"><h3>Hábitos</h3
 
 /* Riesgo cardiometabólico: exploración y analítica */
 const METAB_GROUPS = [
-  ["Antropometría y presión arterial", [["weight", "Peso", "kg"], ["height", "Talla", "cm"], ["waist", "Perímetro de cintura", "cm", "H < 102 · M < 88"], ["sbp", "PA sistólica", "mmHg"], ["dbp", "PA diastólica", "mmHg"]], [["txHta", "En tratamiento antihipertensivo"]],
-    `<div class="imcbox"><span class="eyebrow">IMC calculado</span><span><span class="val" data-out="m-imc">—</span> <span class="small muted">kg/m²</span></span><span class="sevpill" data-sevout="m-imc">—</span></div>`],
+  ["Antropometría y presión arterial", [["weight", "Peso", "kg"], ["height", "Talla", "cm"], ["waist", "Perímetro de cintura", "cm", "H < 102 · M < 88"], ["bf", "Grasa corporal (Omron)", "%", "según edad y sexo"], ["sbp", "PA sistólica", "mmHg"], ["dbp", "PA diastólica", "mmHg"]], [["txHta", "En tratamiento antihipertensivo"]],
+    `<div class="imcbox"><span class="eyebrow">IMC calculado</span><span><span class="val" data-out="m-imc">—</span> <span class="small muted">kg/m²</span></span><span class="sevpill" data-sevout="m-imc">—</span></div><div class="imcbox"><span class="eyebrow">Grasa corporal</span><span><span class="val" data-out="r-bf">—</span> <span class="small muted">%</span></span><span class="sevpill" data-sevout="r-bf">—</span></div>`],
   ["Eje glucémico", [["glu", "Glucosa basal", "mg/dL", "< 100"], ["hba1c", "HbA1c", "%", "< 5,7"], ["ins", "Insulina basal (opcional)", "µU/mL", "para HOMA-IR"]], [["txDm", "Diabetes diagnosticada o en tratamiento"]]],
-  ["Perfil lipídico", [["tc", "Colesterol total", "mg/dL"], ["hdl", "c-HDL", "mg/dL", "H ≥ 40 · M ≥ 50"], ["ldl", "c-LDL", "mg/dL"], ["tg", "Triglicéridos", "mg/dL", "< 150"], ["lpa", "Lipoproteína(a) · Lp(a)", `<span data-out="lpaU">mg/dL</span>`, "< 30 mg/dL · < 75 nmol/L"]], [["txLip", "En tratamiento hipolipemiante (estatinas / fibratos)"]],
+  ["Perfil lipídico", [["tc", "Colesterol total", "mg/dL"], ["hdl", "c-HDL", "mg/dL", "H ≥ 40 · M ≥ 50"], ["ldl", "c-LDL", "mg/dL"], ["tg", "Triglicéridos", "mg/dL", "< 150"], ["lpa", "Lipoproteína(a) · Lp(a)", `<span data-out="lpaU">mg/dL</span>`, "< 30 mg/dL · < 75 nmol/L"], ["apoa", "Apolipoproteína A1 · ApoA1", "mg/dL", "H ≥ 120 · M ≥ 140"], ["apob", "Apolipoproteína B · ApoB", "mg/dL", "< 100"], ["hcy", "Homocisteína", "µmol/L", "≤ 15"]], [["txLip", "En tratamiento hipolipemiante (estatinas / fibratos)"]],
     `<div class="field"><label>Unidad de la Lp(a)</label>${seg("metab.lpaU", [["mg", "mg/dL"], ["nmol", "nmol/L"]])}</div>`],
-  ["Perfil hepático (MASLD · FIB-4)", [["ast", "AST / GOT", "U/L"], ["alt", "ALT / GPT", "U/L"], ["ggt", "GGT", "U/L"], ["plt", "Plaquetas", "×10³/µL"]], []],
+  ["Perfil hepático (MASLD · FIB-4)", [["ast", "AST / GOT", "U/L", "8–33"], ["alt", "ALT / GPT", "U/L", "4–36"], ["ggt", "GGT", "U/L", "5–40"], ["plt", "Plaquetas", "×10³/µL", "150–400"]], []],
   ["Función renal, ácido úrico e inflamación", [["cr", "Creatinina", "mg/dL"], ["uric", "Ácido úrico", "mg/dL", "H ≤ 7 · M ≤ 6"], ["uacr", "Albúmina/creatinina en orina", "mg/g", "< 30"], ["crp", "PCR", "mg/L"], ["esr", "VSG", "mm/h"]], []],
   ["Hemograma · fórmula leucocitaria (índices de inflamación sistémica)", [["neu", "Neutrófilos", "×10³/µL"], ["lym", "Linfocitos", "×10³/µL"], ["mono", "Monocitos", "×10³/µL"]], []],
 ];
@@ -611,12 +611,65 @@ const LAB_REQ = [
   "SOLICITUD DE CONTROL METABÓLICO EN PSORIASIS",
   "1. Hemograma completo (recuento de plaquetas para el FIB-4).",
   "2. Eje glucémico: glucosa basal en ayunas, HbA1c [opcional: insulina basal para HOMA-IR].",
-  "3. Perfil lipídico: colesterol total, c-HDL, c-LDL, triglicéridos, colesterol no-HDL [opcional: ApoB].",
+  "3. Perfil lipídico: colesterol total, c-HDL, c-LDL, triglicéridos, colesterol no-HDL, apolipoproteína A1, apolipoproteína B y homocisteína (en ayunas).",
   "4. Perfil hepático (MASLD): AST (GOT), ALT (GPT), GGT, fosfatasa alcalina, bilirrubina total.",
   "5. Función renal e inflamación: creatinina, FGe (CKD-EPI), ácido úrico, proteína C reactiva (PCR).",
   "6. Orina: sedimento y cociente albúmina/creatinina (CAC).",
-  "7. En consulta: peso, talla (IMC), perímetro de cintura y presión arterial.",
+  "7. En consulta: peso, talla (IMC), perímetro de cintura, porcentaje de grasa corporal (impedanciómetro) y presión arterial.",
 ].join("\n");
+/* Momento de la medición dentro del seguimiento */
+const WEEKS = [["0", "Basal"], ["12", "Semana 12"], ["16", "Semana 16"], ["24", "Semana 24"], ["52", "Semana 52"], ["104", "Semana 104"]];
+const weekTxt = w => w == null ? "sin indicar" : +w === 0 ? "basal" : "semana " + w;
+/* Rangos usados para interpretar cada medición y su procedencia */
+const REF_RANGES = [
+  ["Escalas de psoriasis", [
+    ["PASI y BSA", "Moderada-grave ≥ 10", "AEDV: Daudén et al., JEADV 2016"],
+    ["PGA (IGA 0–4)", "0 aclarada a 4 grave", "Langley et al. 2015"],
+    ["DLQI", "0–1 sin efecto · 2–5 pequeño · 6–10 moderado · 11–20 muy importante · 21–30 extremo", "Hongbo et al., J Invest Dermatol 2005"],
+    ["EVA del picor", "&lt; 4 leve · 4–6,9 moderado · 7–8,9 grave · ≥ 9 muy grave", "Reich et al. 2012"],
+    ["PURE-4", "Positivo con ≥ 1 respuesta afirmativa", "Audureau et al., JEADV 2018; Belinchón et al. 2020"],
+    ["NAPSI, PSSI, PPASI, GPSI", "Afectación baja &lt; 15 %, intermedia &lt; 40 % o alta ≥ 40 % del máximo", "Sin categorías publicadas: criterio propio de la app"],
+  ]],
+  ["Exploración", [
+    ["IMC", "&lt; 18,5 · 18,5–24,9 · 25–29,9 · ≥ 30 kg/m²", "OMS / NIH"],
+    ["Cintura y presión arterial", "Cintura &gt; 102 H / &gt; 88 M cm · PA ≥ 130/85 mmHg", "NCEP-ATP III"],
+    ["Grasa corporal", "Según edad y sexo, 20–79 años (ver «Riesgo cardiovascular»)", "Gallagher et al., AJCN 2000"],
+  ]],
+  ["Glucemia", [
+    ["Glucosa basal", "&lt; 100 · 100–125 prediabetes · ≥ 126 mg/dL diabetes", "ADA, Standards of Care"],
+    ["HbA1c", "&lt; 5,7 · 5,7–6,4 prediabetes · ≥ 6,5 % diabetes", "ADA, Standards of Care"],
+    ["HOMA-IR", "≥ 2,5 resistencia a la insulina", "Punto de corte habitual, sin fuente confirmada"],
+    ["TyG", "≥ 8,5 (orientativo)", "Sin consenso; varía según la población"],
+  ]],
+  ["Lípidos y apolipoproteínas", [
+    ["Colesterol total", "&lt; 200 · 200–239 · ≥ 240 mg/dL", "NCEP-ATP III"],
+    ["c-LDL", "&lt; 100 · 100–129 · 130–159 · 160–189 · ≥ 190 mg/dL", "NCEP-ATP III"],
+    ["c-HDL y no-HDL", "c-HDL &lt; 40 H / &lt; 50 M · no-HDL ≥ 130 mg/dL", "NCEP-ATP III"],
+    ["Triglicéridos", "&lt; 150 · 150–199 · 200–499 · ≥ 500 mg/dL", "NCEP-ATP III"],
+    ["Lp(a)", "&lt; 30 · 30–50 · &gt; 50 · ≥ 180 mg/dL", "Consenso ESC/EAS 2022"],
+    ["ApoB", "Objetivos &lt; 100 moderado · &lt; 80 alto · &lt; 65 mg/dL muy alto", "ESC/EAS 2019 (Mach et al.)"],
+    ["ApoB alta", "≥ 130 mg/dL, potenciador de riesgo", "AHA/ACC 2018"],
+    ["ApoA1", "Baja &lt; 120 H / &lt; 140 M mg/dL", "ESC/EAS 2011"],
+    ["Cociente ApoB/ApoA1", "Sin punto de corte", "ESC/EAS: estima el riesgo; no es diagnóstico ni objetivo"],
+    ["Castelli I y II", "I &gt; 5 H / &gt; 4,5 M · II &gt; 3,5 H / &gt; 3 M", "Millán et al. 2009"],
+  ]],
+  ["Otros marcadores", [
+    ["Homocisteína", "5–15 normal · 16–30 moderada · 31–100 intermedia · &gt; 100 µmol/L grave", "NCBI Bookshelf NBK554408"],
+    ["AST / ALT / GGT", "8–33 / 4–36 / 5–40 U/L", "MedlinePlus (NIH)"],
+    ["Plaquetas", "150–400 ×10³/µL", "MedlinePlus (NIH)"],
+    ["FIB-4", "&lt; 1,3 (&lt; 2 si ≥ 65 años) · &gt; 2,67", "Fórmula: Sterling et al. 2006; cortes: Shah et al. 2009; McPherson et al. 2017"],
+    ["FGe y albuminuria", "G1–G5 · A1 &lt; 30, A2 30–300, A3 &gt; 300 mg/g", "CKD-EPI 2021; KDIGO"],
+    ["Ácido úrico", "H ≤ 7 · M ≤ 6 mg/dL", "Punto de corte clínico, sin fuente confirmada (MedlinePlus: H 4–8,6 · M 3–7,1)"],
+    ["PCR", "&lt; 1 · 1–3 · &gt; 3 · &gt; 10 mg/L", "AHA/CDC"],
+    ["VSG", "H edad/2 · M (edad + 10)/2", "Miller et al., BMJ 1983"],
+    ["Neutrófilos, linfocitos, monocitos", "Sin rango general único", "Usar el rango del laboratorio"],
+    ["NLR, SII, SIRI, MHR, PIV", "NLR &gt; 3 · SII &gt; 600 · SIRI &gt; 1,2 · MHR &gt; 11 · PIV &gt; 300", "Orientativos, sin consenso"],
+    ["SCORE2 / SCORE2-OP", "Umbrales según la edad", "ESC 2021"],
+    ["REGICOR", "&lt; 5 · 5–9,9 · 10–14,9 · ≥ 15 %", "Marrugat et al. 2003"],
+  ]],
+];
+const SRC_PSO = "Fuentes de los rangos: PASI y BSA, Daudén et al. JEADV 2016 (AEDV); IGA, Langley et al. 2015; DLQI, Hongbo et al. J Invest Dermatol 2005; EVA del picor, Reich et al. 2012; PURE-4, Audureau et al. JEADV 2018. NAPSI, PSSI, PPASI y GPSI no tienen categorías publicadas: «baja, intermedia, alta» es un criterio propio de la app.";
+const SRC_MET = "Fuentes de los rangos: IMC, OMS/NIH; cintura, presión arterial, lípidos y síndrome metabólico, NCEP-ATP III; grasa corporal, Gallagher et al. AJCN 2000; glucosa y HbA1c, ADA; Lp(a), consenso ESC/EAS 2022; ApoB, ESC/EAS 2019 y AHA/ACC 2018; ApoA1, ESC/EAS 2011; homocisteína, NCBI Bookshelf NBK554408; AST, ALT, GGT y plaquetas, MedlinePlus (NIH); FIB-4, Sterling et al. 2006, Shah et al. 2009 y McPherson et al. 2017; FGe y albuminuria, CKD-EPI 2021 y KDIGO; PCR, AHA/CDC; VSG, Miller et al. BMJ 1983; Castelli, Millán et al. 2009; SCORE2, ESC 2021; REGICOR, Marrugat et al. 2003. Sin fuente confirmada: HOMA-IR y ácido úrico. Índices de inflamación y TyG: orientativos, sin consenso.";
 
 /* PURE-4 · Psoriatic arthritis UnclutteRed screening Evaluation (adaptación española, Belinchón et al. 2020) */
 const PURE4_Q = [
@@ -636,7 +689,7 @@ const zeroEID = () => ({ e: 0, i: 0, d: 0, a: 0 });
 function emptyState() {
   return {
     example: false,
-    patient: { name: "", date: new Date().toISOString().slice(0, 10) },
+    patient: { name: "", date: new Date().toISOString().slice(0, 10), week: null },
     bsa: Object.fromEntries(BSA_REGIONS.map(r => [r.k, 0])),
     pasi: Object.fromEntries(PASI_REGIONS.map(r => [r.k, zeroEID()])), pasiBase: "",
     pga: { ver: "iga5", iga5: null, pga7: null, dyn: null, base: "" },
@@ -665,7 +718,7 @@ function exampleState() {
   s.pure4 = [0, 1, 0, 0];
   s.habits = { tobacco: 1, alcohol: 0, sport: 0 };
   s.metab = { age: 52, sex: "H", weight: 96, height: 174, waist: 108, sbp: 138, dbp: 88, txHta: false, glu: 112, hba1c: 6.1, ins: 14.5, txDm: false,
-    tc: 228, hdl: 36, ldl: 142, tg: 215, txLip: false, ast: 42, alt: 58, ggt: 74, plt: 165, cr: 1.05, uric: 7.6, uacr: 18, crp: 6.4, neu: 5.2, lym: 1.6, mono: 0.62, mult: true, lpa: 72, lpaU: "mg", esr: 18 };
+    tc: 228, hdl: 36, ldl: 142, tg: 215, txLip: false, ast: 42, alt: 58, ggt: 74, plt: 165, cr: 1.05, uric: 7.6, uacr: 18, crp: 6.4, neu: 5.2, lym: 1.6, mono: 0.62, mult: true, lpa: 72, lpaU: "mg", esr: 18, bf: 31, apoa: 112, apob: 128, hcy: 17 };
   return s;
 }
 const STORE = "psoriasis-escalas-v1";
@@ -724,6 +777,7 @@ function calcMetab() {
   R.imc = R.weight && R.height ? R.weight / Math.pow(R.height / 100, 2) : null;
   R.homa = R.glu && R.ins ? R.glu * R.ins / 405 : null;
   R.nohdl = R.tc && R.hdl && R.tc > R.hdl ? R.tc - R.hdl : null;
+  R.apor = R.apob && R.apoa ? R.apob / R.apoa : null;
   R.fib4 = R.age && R.ast && R.alt && R.plt ? R.age * R.ast / (R.plt * Math.sqrt(R.alt)) : null;
   R.fge = sex ? ckdEpi(R.cr, R.age, fem) : null;
   // Síndrome metabólico, NCEP-ATP III: ≥ 3 de 5 criterios
@@ -750,11 +804,34 @@ function sevGlu(R) {
   if (R.glu == null && R.hba1c == null) return [0, "—"];
   return R.hba1c >= 6.5 || R.glu >= 126 ? [3, "Rango de diabetes"] : R.hba1c >= 5.7 || R.glu >= 100 ? [2, "Prediabetes"] : [1, "Normal"];
 }
+// Interpretación individual de cada medición para el informe
+const sevBand = (v, cuts) => { if (v == null) return [0, "—"]; for (const [lim, sv, t] of cuts) if (v < lim) return [sv, t]; return [0, "—"]; };
+const sevRange = (v, lo, hi, tLo, tHi) => v == null ? [0, "—"] : v < lo ? [2, tLo] : v > hi ? [2, tHi] : [1, "Normal"];
+const sevGluV = v => sevBand(v, [[100, 1, "Normal"], [126, 2, "Glucemia basal alterada (100–125)"], [Infinity, 3, "Rango de diabetes (≥ 126)"]]);
+const sevHbA1c = v => sevBand(v, [[5.7, 1, "Normal"], [6.5, 2, "Prediabetes (5,7–6,4)"], [Infinity, 3, "Rango de diabetes (≥ 6,5)"]]);
+const sevTC = v => sevBand(v, [[200, 1, "Deseable (< 200)"], [240, 2, "Límite alto (200–239)"], [Infinity, 3, "Alto (≥ 240)"]]);
+const sevLDL = v => sevBand(v, [[100, 1, "Óptimo (< 100); objetivo según riesgo cardiovascular"], [130, 1, "Casi óptimo (100–129); objetivo según riesgo cardiovascular"], [160, 2, "Límite alto (130–159)"], [190, 3, "Alto (160–189)"], [Infinity, 3, "Muy alto (≥ 190): descartar hipercolesterolemia familiar"]]);
+const sevTG = v => sevBand(v, [[150, 1, "Normal (< 150)"], [200, 2, "Límite alto (150–199)"], [500, 3, "Alto (200–499)"], [Infinity, 4, "Muy alto (≥ 500): riesgo de pancreatitis"]]);
+function sevHDL(v, sex, fem) { return v == null ? [0, "—"] : !sex ? [0, "Indica el sexo"] : v < (fem ? 50 : 40) ? [2, `Bajo (< ${fem ? 50 : 40})`] : [1, "Normal"]; }
+function sevApoA(v, sex, fem) { return v == null ? [0, "—"] : !sex ? [0, "Indica el sexo"] : v < (fem ? 140 : 120) ? [2, `Baja (< ${fem ? 140 : 120})`] : [1, "Normal"]; }
+const sevApoB = v => sevBand(v, [[65, 1, "Cumple todos los objetivos ESC/EAS (< 65)"], [80, 1, "Cumple el objetivo de riesgo alto (< 80), no el de muy alto"], [100, 1, "Cumple el objetivo de riesgo moderado (< 100), no el de alto"], [130, 2, "Elevada (≥ 100)"], [Infinity, 3, "Muy elevada (≥ 130): potenciador de riesgo"]]);
+const sevApoR = v => v == null ? [0, "—"] : [0, "Sin punto de corte en guías; estima el riesgo, no es objetivo terapéutico"];
+const sevHcy = v => v == null ? [0, "—"] : v > 100 ? [4, "Hiperhomocisteinemia grave (> 100)"] : v > 30 ? [3, "Hiperhomocisteinemia intermedia (31–100)"] : v > 15 ? [2, "Hiperhomocisteinemia moderada (16–30)"] : [1, "Normal (≤ 15)"];
+// Grasa corporal: Gallagher et al. AJCN 2000 (rangos que recoge el manual de Omron). Límites de normal, alto y muy alto
+const BF_RANGES = { H: [[40, [8, 20, 25]], [60, [11, 22, 28]], [80, [13, 25, 30]]], M: [[40, [21, 33, 39]], [60, [23, 34, 40]], [80, [24, 36, 42]]] };
+const BF_HIGH = R => R.sex && R.age >= 20 && R.age < 80 ? BF_RANGES[R.sex].find(b => R.age < b[0])[1][1] : Infinity;
+function sevBF(v, age, sex) {
+  if (v == null) return [0, "—"];
+  if (!sex || age == null) return [0, "Indica edad y sexo"];
+  if (age < 20 || age >= 80) return [0, "Sin referencia para esta edad (20–79 años)"];
+  const [lo, hi, vh] = BF_RANGES[sex].find(b => age < b[0])[1];
+  return v < lo ? [2, `Bajo (< ${lo})`] : v < hi ? [1, `Normal (${lo}–${fmt(hi - .1)})`] : v < vh ? [2, `Alto (${hi}–${fmt(vh - .1)})`] : [3, `Muy alto (≥ ${vh})`];
+}
 function metabAlerts(R) {
   const A = [], H = S.habits || {};
   const low = R.age >= 65 ? 2 : 1.3;
-  if ((R.fib4 != null && R.fib4 >= low) || R.alt > 45 || R.ast > 45)
-    A.push([R.fib4 > 2.67 ? 3 : 2, "Riesgo hepático (MASLD) · precaución con metotrexato", `FIB-4 ${R.fib4 != null ? fmt(R.fib4, 2) : "no calculable"}${R.alt > 45 || R.ast > 45 ? ", transaminasas elevadas" : ""}. Evitar o extremar la precaución con metotrexato; valorar elastografía de transición (FibroScan) o ecografía abdominal.`]);
+  if ((R.fib4 != null && R.fib4 >= low) || R.alt > 36 || R.ast > 33)
+    A.push([R.fib4 > 2.67 ? 3 : 2, "Riesgo hepático (MASLD) · precaución con metotrexato", `FIB-4 ${R.fib4 != null ? fmt(R.fib4, 2) : "no calculable"}${R.alt > 36 || R.ast > 33 ? ", transaminasas elevadas" : ""}. Evitar o extremar la precaución con metotrexato; valorar elastografía de transición (FibroScan) o ecografía abdominal.`]);
   if (+H.alcohol === 1)
     A.push([2, "Consumo de alcohol activo", "Aumenta la hepatotoxicidad del metotrexato y empeora la MASLD; recomendar abstinencia o reducción del consumo."]);
   if (R.tg >= 150)
@@ -765,6 +842,8 @@ function metabAlerts(R) {
     A.push([2, "Hiperuricemia", `Ácido úrico ${fmt(R.uric)} mg/dL. Diagnóstico diferencial con gota ante una monoartritis; precaución con ciclosporina.`]);
   if (R.imc >= 30)
     A.push([0, "Obesidad e influencia en la terapia biológica", `IMC ${fmt(R.imc)} kg/m². Reduce la respuesta a biológicos de dosis fija; valorar fármacos con ajuste por peso (ustekinumab > 100 kg, infliximab) o anti-IL-17/IL-23 de alta eficacia, junto con intervención ponderal.`]);
+  if (R.hcy > 15)
+    A.push([R.hcy > 30 ? 3 : 2, "Hiperhomocisteinemia", `Homocisteína ${fmt(R.hcy)} µmol/L. Descartar déficit de folato o vitamina B12, insuficiencia renal e hipotiroidismo; el metotrexato la eleva, por lo que debe revisarse la suplementación con ácido fólico.`]);
   const g = sevGlu(R);
   if (g[0] >= 2 && !R.txDm)
     A.push([g[0], g[0] === 3 ? "Glucemia en rango de diabetes" : "Prediabetes / resistencia a la insulina", `Glucosa ${R.glu != null ? fmt(R.glu) + " mg/dL" : "—"} · HbA1c ${R.hba1c != null ? fmt(R.hba1c) + " %" : "—"}. Se recomienda intervención metabólica activa${g[0] === 3 ? " y confirmar el diagnóstico" : ""}.`]);
@@ -915,9 +994,9 @@ const SECTIONS = [
   { t: "pso", g: "Comorbilidad", k: "pure4", n: "PURE-4", sub: "Cribado de artritis psoriásica" },
   { t: "pso", g: "Valoración", k: "summary", n: "Clasificación", sub: "Gravedad según AEDV, AAD-NPF e IPC" },
   { t: "met", g: "Datos del paciente", k: "mdata", n: "Datos y exploración", sub: "Edad, sexo, hábitos, IMC, PA" },
-  { t: "met", g: "Datos del paciente", k: "mlab", n: "Analítica", sub: "Glucemia, lípidos, Lp(a), hígado, riñón, PCR, VSG, hemograma" },
+  { t: "met", g: "Datos del paciente", k: "mlab", n: "Analítica", sub: "Glucemia, lípidos, Lp(a), ApoA1, ApoB, homocisteína, hígado, riñón, PCR, VSG, hemograma" },
   { t: "met", g: "Resultados", k: "metab", n: "Síndrome metabólico", sub: "Índices, criterios y alertas" },
-  { t: "met", g: "Resultados", k: "cvrisk", n: "Riesgo cardiovascular", sub: "Castelli, Lp(a), SCORE2, REGICOR" },
+  { t: "met", g: "Resultados", k: "cvrisk", n: "Riesgo cardiovascular", sub: "Castelli, Lp(a), ApoB/ApoA1, homocisteína, % grasa, SCORE2, REGICOR" },
   { t: "met", g: "Resultados", k: "inflam", n: "Inflamación y riñón", sub: "PCR, VSG, NLR, SII, CACu" },
   { t: "met", g: "Herramientas", k: "labreq", n: "Petición de analítica", sub: "Texto para el volante" },
   { t: "inf", g: "Informe", k: "informe", n: "Informe", sub: "Texto para la historia clínica" },
@@ -964,7 +1043,13 @@ function riskCards() {
 <!--SPLIT--><div class="card"><div class="card-h"><h3>Lipoproteína(a) · Lp(a)</h3><span class="small muted">Factor de riesgo cardiovascular independiente</span></div><div class="kpis">${kpi("lpa", "Lp(a)", `<span data-out="lpaU">mg/dL</span>`)}</div><div class="implic" data-out="r-lpaMsg"></div>
   <p class="note">Consenso ESC/EAS 2022: < 30 mg/dL (< 75 nmol/L) riesgo no aumentado · 30–50 mg/dL (75–125 nmol/L) zona gris · > 50 mg/dL (> 125 nmol/L) riesgo aumentado · ≥ 180 mg/dL (≥ 430 nmol/L) riesgo comparable al de la hipercolesterolemia familiar heterocigota. Se recomienda medirla al menos una vez en la vida. Se introduce en «Analítica · Perfil lipídico».</p></div>
 <!--SPLIT--><div class="card"><div class="card-h"><h3>Reactantes de fase aguda · PCR y VSG</h3></div><div class="kpis">${kpi("crp", "PCR", "mg/L")}${kpi("esr", "VSG", "mm/h")}</div><div class="implic" data-out="r-crpMsg"></div>
-  <p class="note">PCR (categorías AHA/CDC, en situación estable): < 1 mg/L riesgo cardiovascular bajo, 1–3 mg/L intermedio, > 3 mg/L alto; > 10 mg/L sugiere inflamación activa o infección (repetir en 2 semanas). VSG: límite superior normal según la edad (Miller): hombres edad/2, mujeres (edad + 10)/2. Se introducen en «Analítica».</p></div>`;
+  <p class="note">PCR (categorías AHA/CDC, en situación estable): < 1 mg/L riesgo cardiovascular bajo, 1–3 mg/L intermedio, > 3 mg/L alto; > 10 mg/L sugiere inflamación activa o infección (repetir en 2 semanas). VSG: límite superior normal según la edad (Miller): hombres edad/2, mujeres (edad + 10)/2. Se introducen en «Analítica».</p></div>
+<!--SPLIT--><div class="card"><div class="card-h"><h3>Apolipoproteínas · ApoA1 y ApoB</h3><span class="small muted">Partículas aterogénicas y antiaterogénicas</span></div><div class="kpis">${kpi("apoa", "ApoA1", "mg/dL")}${kpi("apob", "ApoB", "mg/dL")}${kpi("apor", "Cociente ApoB/ApoA1")}</div><div class="implic" data-out="r-apoMsg"></div>
+  <p class="note">ApoB: objetivos ESC/EAS 2019 según el riesgo: < 100 mg/dL moderado, < 80 alto, < 65 muy alto; ≥ 130 mg/dL es potenciador de riesgo (ACC/AHA 2018). ApoA1: baja si < 120 mg/dL (H) / < 140 mg/dL (M) (ESC/EAS 2011). Cociente ApoB/ApoA1: las guías ESC/EAS lo consideran útil para estimar el riesgo, pero no como diagnóstico ni objetivo terapéutico, y no fijan punto de corte. Si el laboratorio informa en g/L, multiplica por 100. Se introducen en «Analítica · Perfil lipídico».</p></div>
+<!--SPLIT--><div class="grid2"><div class="card"><div class="card-h"><h3>Grasa corporal · impedancia</h3><span class="small muted">Omron Body Fat Monitor</span></div><div class="kpis">${kpi("bf", "Grasa corporal", "%")}</div><div class="implic" data-out="r-bfMsg"></div>
+  <p class="note">Rangos según Gallagher et al. (AJCN 2000), 20–79 años. Hombres: normal 8–19,9 % (20–39 años), 11–21,9 % (40–59), 13–24,9 % (60–79); muy alto ≥ 25, ≥ 28 y ≥ 30 %. Mujeres: normal 21–32,9 %, 23–33,9 %, 24–35,9 %; muy alto ≥ 39, ≥ 40 y ≥ 42 %. Parámetro complementario: no entra en el cálculo de SCORE2 ni de REGICOR. Medir en condiciones parecidas en cada visita (hora, hidratación, sin ejercicio ni comida reciente). No usar en portadores de marcapasos u otros implantes electrónicos.</p></div>
+  <div class="card"><div class="card-h"><h3>Homocisteína</h3><span class="small muted">En ayunas</span></div><div class="kpis">${kpi("hcy", "Homocisteína", "µmol/L")}</div><div class="implic" data-out="r-hcyMsg"></div>
+  <p class="note">5–15 µmol/L normal · 16–30 moderada · 31–100 intermedia · > 100 grave (NCBI Bookshelf NBK554408). Reducirla con vitaminas del grupo B no ha mostrado beneficio sobre el infarto ni la mortalidad, con una reducción pequeña del ictus (Martí-Carvajal et al., Cochrane 2017); por eso no se usa para reclasificar el riesgo. Se introduce en «Analítica · Perfil lipídico».</p></div></div>`;
 }
 
 function buildMain() {
@@ -1107,7 +1192,7 @@ function buildMain() {
   const mChecks = cs => cs.length ? `<div class="checks">` + cs.map(([k, t]) => `<label><input type="checkbox" data-path="metab.${k}" data-bool="1"><span>${t}</span></label>`).join("") + `</div>` : "";
   const phead = (eb, t, d, box = "") => `<div class="phead"><div class="intro"><span class="eyebrow">${eb}</span><h2>${t}</h2><p>${d}</p></div>${box}</div>`;
   const mCard = ([t, fs, cs, extra]) => `<div class="card"><div class="card-h"><h3>${t}</h3></div><div class="fields">${fs.map(mField).join("")}</div>${extra || ""}${mChecks(cs)}</div>`;
-  const [rAt, rCv, rInf, rUacr, rLpa, rCrp] = riskCards().split("<!--SPLIT-->");
+  const [rAt, rCv, rInf, rUacr, rLpa, rCrp, rApo, rExtra] = riskCards().split("<!--SPLIT-->");
   h += `<section class="panel" id="sec-mdata" data-sec="mdata">${phead("Riesgo cardiometabólico · datos", "Datos y exploración", "Edad, sexo, hábitos, antropometría y presión arterial. El IMC se calcula automáticamente con el peso y la talla.")}
   <div class="grid2"><div class="card"><div class="card-h"><h3>Datos base</h3></div><div class="fields">${mField(["age", "Edad", "años"])}
   <div class="field"><label>Sexo biológico</label>${seg("metab.sex", [["H", "Hombre"], ["M", "Mujer"]])}</div></div>
@@ -1122,7 +1207,7 @@ function buildMain() {
   <div class="grid2"><div class="card"><div class="card-h"><h3>Criterios de síndrome metabólico</h3><span class="small muted">NCEP-ATP III · ≥ 3 confirma</span></div><div class="critlist" data-out="smList"></div></div>
   <div class="card"><div class="card-h"><h3>Alertas terapéuticas</h3></div><div class="critlist" data-out="mAlerts"></div></div></div>
   </section>`;
-  h += `<section class="panel" id="sec-cvrisk" data-sec="cvrisk">${phead("Riesgo cardiometabólico · resultados", "Riesgo cardiovascular", "Riesgo aterogénico, índices glucometabólicos, lipoproteína(a) y riesgo cardiovascular a 10 años (SCORE2 y REGICOR).")}${rAt}${rLpa}${rCv}</section>`;
+  h += `<section class="panel" id="sec-cvrisk" data-sec="cvrisk">${phead("Riesgo cardiometabólico · resultados", "Riesgo cardiovascular", "Riesgo aterogénico, índices glucometabólicos, lipoproteína(a), apolipoproteínas, riesgo cardiovascular a 10 años (SCORE2 y REGICOR), porcentaje de grasa corporal y homocisteína.")}${rAt}${rLpa}${rApo}${rCv}${rExtra}</section>`;
   h += `<section class="panel" id="sec-inflam" data-sec="inflam">${phead("Riesgo cardiometabólico · resultados", "Inflamación sistémica y función renal", "Reactantes de fase aguda, índices de inflamación sistémica e inmunotrombosis y albuminuria.")}${rCrp}${rInf}${rUacr}</section>`;
   h += `<section class="panel" id="sec-labreq" data-sec="labreq">${phead("Riesgo cardiometabólico · herramientas", "Petición de analítica", "Texto listo para copiar en el volante de laboratorio o el protocolo de enfermería.")}
   <div class="card"><div class="card-h"><h3>Petición de analítica</h3><button type="button" class="btn primary" id="copyLabBtn">Copiar solicitud</button></div><textarea class="out" id="labText" readonly aria-label="Solicitud de analítica" style="min-height:190px">${LAB_REQ}</textarea><span class="small muted" id="copyLabMsg" aria-live="polite"></span></div>
@@ -1141,9 +1226,11 @@ function buildMain() {
   /* ---------- Informe para la historia (pestaña 3) ---------- */
   h += `<section class="panel" id="sec-informe" data-sec="informe">
   <div class="phead"><div class="intro"><span class="eyebrow">Informe</span><h2>Informe para la historia clínica</h2>
-  <p>Recoge todos los datos de las pestañas «Escalas de psoriasis» y «Riesgo cardiometabólico». Copia el texto completo o solo una de las dos partes y pégalo en la historia clínica.</p></div></div>
+  <p>Recoge el resultado y la interpretación de cada medición de las pestañas «Escalas de psoriasis» y «Riesgo cardiometabólico». Copia el texto completo o solo una de las dos partes y pégalo en la historia clínica.</p></div></div>
+  <div class="card"><div class="card-h"><h3>Momento de la medición</h3><span class="small muted">Pulsa de nuevo para dejar sin indicar</span></div>${seg("patient.week", WEEKS)}</div>
   <div class="card"><div class="card-h"><h3>Texto para la historia clínica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="printBtn">Imprimir informe</button><button type="button" class="btn" id="copyPsoBtn">Copiar solo psoriasis</button><button type="button" class="btn" id="copyMetBtn">Copiar solo cardiometabólico</button><button type="button" class="btn primary" id="copyBtn">Copiar todo</button></div></div><p class="note" id="printNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir el informe.</p><textarea class="out" id="sumText" readonly aria-label="Resumen en texto" style="min-height:420px"></textarea><span class="small muted" id="copyMsg" aria-live="polite"></span></div>
   <div class="card"><div class="card-h"><h3>Tabla de puntuaciones</h3></div><div class="tablewrap"><table class="sumtable"><thead><tr><th>Escala</th><th>Valor</th><th>Interpretación</th></tr></thead><tbody data-out="sumTable"></tbody></table></div></div>
+  <div class="card"><div class="card-h"><h3>Rangos de referencia y fuentes</h3><span class="small muted">De dónde sale cada interpretación</span></div><div class="tablewrap"><table class="sumtable"><thead><tr><th>Medición</th><th>Rango</th><th>Fuente</th></tr></thead><tbody>${REF_RANGES.map(([g, rs]) => `<tr class="grp"><td colspan="3">${g}</td></tr>` + rs.map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")).join("")}</tbody></table></div><p class="note">Cuando el informe del laboratorio indique su propio rango, prevalece ese para interpretar el resultado.</p></div>
   </section>`;
   M.innerHTML = h;
 }
@@ -1293,8 +1380,19 @@ function update() {
   out("lpaU", (S.metab || {}).lpaU === "nmol" ? "nmol/L" : "mg/dL");
   out("r-lpa", LA ? fmt(LA.v, 0) : "—"); sevOut("r-lpa", LA ? LA.sv : [0, "—"]);
   out("r-lpaMsg", !LA ? para("Introduce la Lp(a) en «Analítica · Perfil lipídico».") : LA.sv[0] >= 3 ? para("<b>Lp(a) elevada:</b> factor de riesgo cardiovascular causal e independiente, determinado genéticamente y poco modificable con la dieta o el ejercicio. Reclasifica el riesgo al alza: controlar de forma más estricta el resto de factores (c-LDL, presión arterial, tabaco) y valorar el cribado en familiares de primer grado." + (LA.sv[0] === 4 ? " Con estos valores el riesgo de por vida es comparable al de la hipercolesterolemia familiar heterocigota." : "")) : LA.sv[0] === 2 ? para("Zona gris: interpretar junto con el resto de factores de riesgo.") : para("Lp(a) no aumentada; no es necesario repetirla salvo cambio clínico."));
-  const mods = [LA && LA.sv[0] >= 3 && "Lp(a) elevada", R.crp > 3 && R.crp <= 10 && "PCR > 3 mg/L", R.uacr >= 30 && "albuminuria", R.smCount >= 3 && "síndrome metabólico"].filter(Boolean);
-  out("r-cvMod", mods.length ? para(`<b>Modificadores de riesgo presentes:</b> ${mods.join(", ")}. Pueden justificar reclasificar al paciente en una categoría de riesgo superior a la calculada.`) : "");
+  const bfS = sevBF(R.bf, R.age, R.sex), bfHi = bfS[0] >= 2 && R.bf >= BF_HIGH(R), hcS = sevHcy(R.hcy);
+  [["bf", R.bf, 1, bfS], ["apoa", R.apoa, 0, sevApoA(R.apoa, R.sex, R.fem)], ["apob", R.apob, 0, sevApoB(R.apob)], ["apor", R.apor, 2, sevApoR(R.apor)], ["hcy", R.hcy, 1, hcS]]
+    .forEach(([k, v, d, sv]) => { out("r-" + k, v == null ? "—" : fmt(v, d)); sevOut("r-" + k, sv); });
+  const s2Cat = X.s2adj == null ? 0 : sevScore2(X.s2adj, R.age)[0], apoGoal = s2Cat === 3 ? 65 : s2Cat === 2 ? 80 : s2Cat === 1 ? 100 : null;
+  out("r-apoMsg", R.apoa == null && R.apob == null ? para("Introduce ApoA1 y ApoB en «Analítica · Perfil lipídico».") : [
+    R.apob == null ? "" : (R.apob >= 100 ? "<b>ApoB elevada:</b> mayor número de partículas aterogénicas circulantes; es especialmente útil con hipertrigliceridemia, diabetes, obesidad o síndrome metabólico, cuando el c-LDL puede infraestimar el riesgo." : "ApoB por debajo de 100 mg/dL.") + (apoGoal ? ` Con la categoría de ${X.s2name} actual, el objetivo orientativo es &lt; ${apoGoal} mg/dL (${R.apob < apoGoal ? "cumplido" : "no cumplido"}).` : ""),
+    R.apoa == null ? "" : sevApoA(R.apoa, R.sex, R.fem)[0] === 2 ? "<b>ApoA1 baja:</b> equivale a un c-HDL bajo; se asocia a mayor riesgo cardiovascular." : "",
+  ].filter(Boolean).map(para).join(""));
+  out("r-bfMsg", R.bf == null ? para("Introduce el porcentaje de grasa en «Datos y exploración».") : bfS[0] === 0 ? para(bfS[1] + ".") : bfHi ? para(`<b>Exceso de grasa corporal:</b> ${R.imc != null && R.imc < 25 ? "con IMC normal (patrón de obesidad de peso normal), situación que el IMC por sí solo no detecta. " : ""}Refuerza la indicación de intervención sobre dieta y ejercicio. Es más útil para seguir la evolución del mismo paciente que como valor aislado.`) : para(bfS[0] === 2 ? "Porcentaje de grasa por debajo del rango de referencia." : "Porcentaje de grasa dentro del rango de referencia."));
+  out("r-hcyMsg", R.hcy == null ? para("Introduce la homocisteína en «Analítica · Perfil lipídico».") : hcS[0] >= 2 ? para("<b>Homocisteína elevada:</b> frecuente en la psoriasis y con metotrexato. Descartar déficit de folato o vitamina B12, insuficiencia renal e hipotiroidismo; revisar la suplementación con ácido fólico.") : para("Homocisteína en rango normal."));
+  const mods = [LA && LA.sv[0] >= 3 && "Lp(a) elevada", R.apob >= 130 && "ApoB ≥ 130 mg/dL", R.crp > 3 && R.crp <= 10 && "PCR > 3 mg/L", R.uacr >= 30 && "albuminuria", R.smCount >= 3 && "síndrome metabólico"].filter(Boolean);
+  const extras = [bfHi && "exceso de grasa corporal", hcS[0] >= 2 && "homocisteína elevada"].filter(Boolean);
+  out("r-cvMod", (mods.length ? para(`<b>Modificadores de riesgo presentes:</b> ${mods.join(", ")}. Pueden justificar reclasificar al paciente en una categoría de riesgo superior a la calculada.`) : "") + (extras.length ? para(`<b>Otros parámetros que tener en cuenta:</b> ${extras.join(", ")}. No modifican el porcentaje calculado ni reclasifican el riesgo por sí solos.`) : ""));
   const crS = sevCRP(R.crp), esS = sevESR(R.esr, R.age, R.fem);
   out("r-crp", R.crp == null ? "—" : fmt(R.crp, 1)); sevOut("r-crp", crS);
   out("r-esr", R.esr == null ? "—" : fmt(R.esr, 0)); sevOut("r-esr", esS);
@@ -1302,7 +1400,7 @@ function update() {
     R.crp == null ? "" : R.crp > 10 ? "<b>PCR > 10 mg/L:</b> sugiere inflamación activa o infección intercurrente; repetirla en situación estable para estimar el riesgo cardiovascular." : R.crp > 3 ? "<b>PCR elevada:</b> refleja la carga inflamatoria sistémica de la psoriasis y se asocia a mayor riesgo cardiovascular; suele descender con un tratamiento sistémico eficaz." : "PCR sin elevación significativa.",
     R.esr == null ? "" : esS[0] >= 2 ? "<b>VSG elevada:</b> marcador inespecífico de inflamación (influyen la anemia, la edad, el sexo, el embarazo y la hipergammaglobulinemia); en la artritis psoriásica se relaciona con la actividad de la enfermedad." : "VSG normal para la edad y el sexo."
   ].filter(Boolean).map(para).join(""));
-  const labKeys = METAB_KEYS.filter(k => !["age", "weight", "height", "waist", "sbp", "dbp"].includes(k)), nLab = labKeys.filter(k => R[k] != null).length;
+  const labKeys = METAB_KEYS.filter(k => !["age", "weight", "height", "waist", "bf", "sbp", "dbp"].includes(k)), nLab = labKeys.filter(k => R[k] != null).length;
   chip("mdata", R.imc == null ? "—" : "IMC " + fmt(R.imc, 1), sevIMC(R.imc)[0]);
   chip("mlab", nLab ? nLab + " datos" : "—", 0);
   const cvS = X.s2adj != null ? sevScore2(X.s2adj, R.age) : sevRegicor(X.regadj);
@@ -1323,7 +1421,8 @@ function summary(C) {
   const pgaSev = S.pga.ver === "dyn" ? (S.pga.dyn == null ? "Sin valorar" : PGA_DYN.find(x => x[0] === S.pga.dyn)[1]) : sevPGA(S.pga.ver, S.pga[S.pga.ver])[1];
   rows.push(["g", "Escalas generales"]);
   rows.push(["BSA", fmt(C.bsa) + " %", sevBSA(C.bsa)[1]]);
-  rows.push(["PASI", fmt(C.pasi) + " / 72", sevPASI(C.pasi)[1] + (C.pasiBase ? ` · mejoría ${fmt(C.pasiImp, 0)} % vs basal ${fmt(C.pasiBase)}` : "")]);
+  const pasiHit = C.pasiBase ? [100, 90, 75, 50].find(t => C.pasiImp >= t) : null;
+  rows.push(["PASI", fmt(C.pasi) + " / 72", sevPASI(C.pasi)[1] + (C.pasiBase ? ` · mejoría ${fmt(C.pasiImp, 0)} % vs basal ${fmt(C.pasiBase)} (${pasiHit ? "PASI " + pasiHit + " alcanzado" : "sin PASI 50"})` : "")]);
   rows.push(["PGA (" + (S.pga.ver === "iga5" ? "IGA 0–4" : S.pga.ver === "pga7" ? "estático 0–6" : "dinámico") + ")", pgaTxt, pgaSev + (C.pgaBsa != null && S.pga.ver !== "dyn" ? ` · PGA×BSA ${fmt(C.pgaBsa)}` : "")]);
   rows.push(["DLQI", C.dlqi == null ? "—" : C.dlqi + " / 30", sevDLQI(C.dlqi)[1] + (C.dlqiAns && C.dlqiAns < 10 ? ` (${C.dlqiAns}/10 respondidas)` : "")]);
   rows.push(["EVA picor", C.itch == null ? "—" : fmt(C.itch) + " / 10", sevItch(C.itch)[1]]);
@@ -1340,33 +1439,57 @@ function summary(C) {
   const R = C.m;
   if (R.any) {
     const f = (v, d = 1) => v == null ? "—" : fmt(v, d);
-    rows.push(["g", "Exploración y analítica"]);
-    if (R.age != null || R.sex) rows.push(["Edad / sexo", [R.age != null ? R.age + " años" : "", R.sex ? (R.fem ? "mujer" : "hombre") : ""].filter(Boolean).join(", "), "—"]);
-    if (R.weight != null || R.height != null) rows.push(["IMC", R.imc == null ? "—" : `${f(R.imc)} kg/m²`, `${sevIMC(R.imc)[1]} (peso ${f(R.weight)} kg, talla ${f(R.height, 0)} cm)`]);
-    if (R.waist != null) rows.push(["Perímetro de cintura", f(R.waist) + " cm", R.sm[0][1] === null ? "Indica el sexo" : R.sm[0][1] ? "Obesidad abdominal" : "Normal"]);
-    if (R.sbp != null || R.dbp != null || R.txHta) rows.push(["Presión arterial", `${R.sbp ?? "—"}/${R.dbp ?? "—"} mmHg`, (R.sm[1][1] ? "≥ 130/85 o tratamiento" : "Normal") + (R.txHta ? " · en tratamiento" : "")]);
-    if (R.glu != null || R.hba1c != null || R.txDm) rows.push(["Glucosa / HbA1c", `${f(R.glu, 0)} mg/dL · ${f(R.hba1c)} %`, sevGlu(R)[1] + (R.homa != null ? ` · HOMA-IR ${f(R.homa, 2)}` : "")]);
-    if (R.tc != null || R.hdl != null || R.ldl != null || R.tg != null || R.txLip) {
-      const ab = [R.tg >= 150 && "TG ≥ 150", R.sm[4][1] && "c-HDL bajo", R.nohdl >= 130 && `no-HDL ${f(R.nohdl, 0)} ≥ 130`].filter(Boolean);
-      rows.push(["Perfil lipídico", `CT ${f(R.tc, 0)} · HDL ${f(R.hdl, 0)} · LDL ${f(R.ldl, 0)} · TG ${f(R.tg, 0)} mg/dL`, (ab.length ? ab.join("; ") : "Sin alteraciones en los criterios evaluados") + (R.txLip ? " · en tratamiento" : "")]);
-    }
-    if (R.ast != null || R.alt != null || R.ggt != null || R.plt != null) rows.push(["Perfil hepático", `AST ${f(R.ast, 0)} · ALT ${f(R.alt, 0)} · GGT ${f(R.ggt, 0)} U/L · plaq. ${f(R.plt, 0)}×10³`, R.fib4 == null ? "FIB-4 no calculable (faltan edad, AST, ALT o plaquetas)" : `FIB-4 ${f(R.fib4, 2)}: ${sevFIB4(R.fib4, R.age)[1].toLowerCase()}`]);
-    if (R.cr != null) rows.push(["Función renal", `Cr ${f(R.cr, 2)} mg/dL`, R.fge == null ? "FGe no calculable (faltan edad o sexo)" : `FGe ${f(R.fge, 0)} mL/min/1,73 m²: ${sevFGe(R.fge)[1]}`]);
-    if (R.uacr != null) rows.push(["Albúmina/creatinina en orina", f(R.uacr, 0) + " mg/g", R.uacr >= 30 ? "Albuminuria (≥ 30)" : "Normal"]);
-    if (R.uric != null) rows.push(["Ácido úrico", f(R.uric) + " mg/dL", R.uric > (R.fem ? 6 : 7) ? "Hiperuricemia" : "Normal"]);
-    if (R.crp != null) rows.push(["PCR", f(R.crp) + " mg/L", sevCRP(R.crp)[1]]);
-    if (R.esr != null) rows.push(["VSG", f(R.esr, 0) + " mm/h", sevESR(R.esr, R.age, R.fem)[1]]);
-    rows.push(["Síndrome metabólico (NCEP-ATP III)", R.smEval ? R.smCount + " / 5" : "—", sevSM(R)[1]]);
+    // cada medición en su propia línea; el grupo solo aparece si tiene algún dato
+    const grp = (title, items) => { const it = items.filter(Boolean); if (it.length) rows.push(["g", title], ...it); };
+    const m = (n, v, d, u, txt) => v == null ? null : [n, f(v, d) + (u ? " " + u : ""), txt];
+    const LA = lpaEval(R), rLim = R.fem ? 6 : 7, sexTxt = t => R.sex ? t : "Indica el sexo";
+    grp("Exploración", [
+      R.age != null || R.sex ? ["Edad / sexo", [R.age != null ? R.age + " años" : "", R.sex ? (R.fem ? "mujer" : "hombre") : ""].filter(Boolean).join(", "), "—"] : null,
+      m("Peso", R.weight, 1, "kg", "—"), m("Talla", R.height, 0, "cm", "—"),
+      m("IMC", R.imc, 1, "kg/m²", sevIMC(R.imc)[1]),
+      m("Perímetro de cintura", R.waist, 1, "cm", R.sm[0][1] === null ? "Indica el sexo" : R.sm[0][1] ? "Obesidad abdominal" : "Normal"),
+      m("Grasa corporal (impedancia, Omron)", R.bf, 1, "%", sevBF(R.bf, R.age, R.sex)[1] + (R.bf >= BF_HIGH(R) && R.imc != null && R.imc < 25 ? " con IMC normal: obesidad de peso normal" : "")),
+      R.sbp != null || R.dbp != null || R.txHta ? ["Presión arterial", `${R.sbp ?? "—"}/${R.dbp ?? "—"} mmHg`, (R.sm[1][1] ? "≥ 130/85 o tratamiento" : "Normal") + (R.txHta ? " · en tratamiento" : "")] : null,
+    ]);
+    grp("Eje glucémico", [
+      m("Glucosa basal", R.glu, 0, "mg/dL", sevGluV(R.glu)[1]), m("HbA1c", R.hba1c, 1, "%", sevHbA1c(R.hba1c)[1]),
+      m("Insulina basal", R.ins, 1, "µU/mL", "Se interpreta con el HOMA-IR"), m("HOMA-IR", R.homa, 2, "", sevHOMA(R.homa)[1]),
+      R.txDm ? ["Diabetes", "Sí", "Diagnosticada o en tratamiento"] : null,
+    ]);
+    grp("Perfil lipídico, apolipoproteínas y homocisteína", [
+      m("Colesterol total", R.tc, 0, "mg/dL", sevTC(R.tc)[1]), m("c-HDL", R.hdl, 0, "mg/dL", sevHDL(R.hdl, R.sex, R.fem)[1]),
+      m("c-LDL", R.ldl, 0, "mg/dL", sevLDL(R.ldl)[1] + (R.tg > 300 ? " (no fiable con TG > 300)" : "")), m("Colesterol no-HDL", R.nohdl, 0, "mg/dL", sevNoHDL(R.nohdl)[1]),
+      m("Triglicéridos", R.tg, 0, "mg/dL", sevTG(R.tg)[1]),
+      LA ? ["Lipoproteína(a)", `${f(LA.v, 0)} ${LA.u}`, LA.sv[1] + (LA.sv[0] >= 3 ? ": factor de riesgo cardiovascular independiente; reclasifica el riesgo al alza" : "")] : null,
+      m("ApoA1", R.apoa, 0, "mg/dL", sevApoA(R.apoa, R.sex, R.fem)[1]), m("ApoB", R.apob, 0, "mg/dL", sevApoB(R.apob)[1]),
+      m("Cociente ApoB/ApoA1", R.apor, 2, "", sevApoR(R.apor)[1]),
+      m("Homocisteína", R.hcy, 1, "µmol/L", sevHcy(R.hcy)[1]),
+      R.txLip ? ["Tratamiento hipolipemiante", "Sí", "Valores obtenidos en tratamiento"] : null,
+    ]);
+    grp("Perfil hepático", [
+      m("AST / GOT", R.ast, 0, "U/L", R.ast > 33 ? "Elevada (> 33)" : "Normal"), m("ALT / GPT", R.alt, 0, "U/L", R.alt > 36 ? "Elevada (> 36)" : "Normal"),
+      m("GGT", R.ggt, 0, "U/L", R.ggt > 40 ? "Elevada (> 40)" : "Normal"),
+      m("Plaquetas", R.plt, 0, "×10³/µL", sevRange(R.plt, 150, 400, "Trombocitopenia (< 150)", "Trombocitosis (> 400)")[1]),
+      R.ast != null || R.alt != null || R.plt != null ? ["FIB-4", f(R.fib4, 2), R.fib4 == null ? "No calculable (faltan edad, AST, ALT o plaquetas)" : sevFIB4(R.fib4, R.age)[1]] : null,
+    ]);
+    grp("Función renal, ácido úrico e inflamación", [
+      m("Creatinina", R.cr, 2, "mg/dL", R.fge == null ? "FGe no calculable (faltan edad o sexo)" : `FGe ${f(R.fge, 0)} mL/min/1,73 m²: ${sevFGe(R.fge)[1]}`),
+      m("Albúmina/creatinina en orina (CACu)", R.uacr, 0, "mg/g", sevUACR(R.uacr)[1] + (kdigoG(R.fge) && kdigoA(R.uacr) ? ` · estadio KDIGO ${kdigoG(R.fge)}${kdigoA(R.uacr)}` : "")),
+      m("Ácido úrico", R.uric, 1, "mg/dL", sexTxt(R.uric > rLim ? "Hiperuricemia" : "Normal")),
+      m("PCR", R.crp, 1, "mg/L", sevCRP(R.crp)[1]), m("VSG", R.esr, 0, "mm/h", sevESR(R.esr, R.age, R.fem)[1]),
+    ]);
+    grp("Hemograma", [
+      ...[["Neutrófilos", R.neu], ["Linfocitos", R.lym], ["Monocitos", R.mono]].map(([n, v]) => m(n, v, 2, "×10³/µL", "Valorar con el rango del laboratorio")),
+    ]);
+    rows.push(["g", "Síndrome metabólico"], ["Síndrome metabólico (NCEP-ATP III)", R.smEval ? R.smCount + " / 5" : "—", sevSM(R)[1]]);
   }
   const X = C.r;
-  if (X.any || R.lpa != null) {
+  if (X.any) {
     const f = (v, d = 1) => v == null ? "—" : fmt(v, d);
     rows.push(["g", "Riesgo cardiovascular e inflamación sistémica"]);
     if (X.cast1 != null) rows.push(["Castelli I (CT/c-HDL)", f(X.cast1, 2), sevCast1(X.cast1, R.fem)[1]]);
     if (X.cast2 != null) rows.push(["Castelli II (c-LDL/c-HDL)", f(X.cast2, 2), sevCast2(X.cast2, R.fem)[1]]);
-    const LA = lpaEval(R);
-    if (LA) rows.push(["Lipoproteína(a)", `${f(LA.v, 0)} ${LA.u}`, LA.sv[1] + (LA.sv[0] >= 3 ? ": factor de riesgo cardiovascular independiente; reclasifica el riesgo al alza" : "")]);
-    if (X.tyg != null) rows.push(["Índice TyG", f(X.tyg, 2), sevTyG(X.tyg)[1] + (R.homa != null ? ` · HOMA-IR ${f(R.homa, 2)}` : "")]);
+    if (X.tyg != null) rows.push(["Índice TyG", f(X.tyg, 2), sevTyG(X.tyg)[1]]);
     const cvTxt = (raw, adj, why, sv, impl) => raw == null ? ["—", why] : [`${f(raw)} %` + (X.mult ? ` × 1,5 = ${f(adj)} %` : ""), `${sv[1]}. ${impl}`];
     if (X.s2 != null || R.any) { const t = cvTxt(X.s2, X.s2adj, X.s2why, sevScore2(X.s2adj, R.age), IMPL_S2[sevScore2(X.s2adj, R.age)[0]] || ""); rows.push([X.s2name + " (10 años)", t[0], t[1]]); }
     if (X.reg != null || R.any) { const t = cvTxt(X.reg, X.regadj, X.regwhy, sevRegicor(X.regadj), IMPL_REG[sevRegicor(X.regadj)[0]] || ""); rows.push(["REGICOR (10 años)", t[0], t[1]]); }
@@ -1376,7 +1499,6 @@ function summary(C) {
     if (X.siri != null) rows.push(["SIRI", f(X.siri, 2), sevCut(X.siri, 1.2, "1,2")[1]]);
     if (X.mhr != null) rows.push(["MHR", f(X.mhr, 1), sevCut(X.mhr, 11, "11")[1]]);
     if (X.piv != null) rows.push(["PIV / AISI", f(X.piv, 0), sevCut(X.piv, 300, "300")[1]]);
-    if (R.uacr != null) rows.push(["CACu (UACR)", f(R.uacr, 0) + " mg/g", sevUACR(R.uacr)[1] + (kdigoG(R.fge) ? ` · estadio KDIGO ${kdigoG(R.fge)}${kdigoA(R.uacr)}` : "")]);
   }
   out("sumTable", rows.map(r => r[0] === "g" ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` : `<tr><td><b>${r[0]}</b></td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`).join(""));
 
@@ -1411,12 +1533,14 @@ function summary(C) {
 
   const hi = rows.findIndex(r => r[0] === "g" && r[1] === "Hábitos");
   const rPso = hi < 0 ? rows : rows.slice(0, hi), rMet = hi < 0 ? [] : rows.slice(hi);
-  const asText = rs => rs.flatMap(r => r[0] === "g" ? ["", r[1].toUpperCase()] : HABITS.some(h => h[1] === r[0]) ? [`- ${r[0]}: ${r[1]}`] : [`- ${r[0]}: ${r[1]} (${r[2]})`]);
-  const head = `EVALUACIÓN DE PSORIASIS Y RIESGO CARDIOMETABÓLICO — ${S.patient.name || "Paciente"} — ${S.patient.date || ""}`;
+  const asText = rs => rs.flatMap(r => r[0] === "g" ? ["", r[1].toUpperCase()] : r[2] === "—" ? [`- ${r[0]}: ${r[1]}`] : [`- ${r[0]}: ${r[1]} (${r[2]})`]);
+  const head = `EVALUACIÓN DE PSORIASIS Y RIESGO CARDIOMETABÓLICO — ${S.patient.name || "Paciente"} — ${S.patient.date || ""}\nMomento de la medición: ${weekTxt(S.patient.week)}`;
   const tPso = ["", "===== ESCALAS DE PSORIASIS =====", ...asText(rPso), "", "CLASIFICACIÓN DE LA GRAVEDAD", `- AEDV: ${aedvTxt}${aedv.length ? " [" + aedv.join("; ") + "]" : ""}`, `- AAD-NPF: ${aad}${aadWhy.length ? " [" + aadWhy.join("; ") + "]" : ""}`, `- IPC: ${ipc.length ? "candidato a tratamiento sistémico [" + ipc.join("; ") + "]" : "candidato a tratamiento tópico"}`];
   if (cr.psa) tPso.push("- Artritis psoriásica asociada");
+  tPso.push("", SRC_PSO);
   const tMet = ["", "===== RIESGO CARDIOMETABÓLICO =====", ...asText(rMet)];
   if (R.alerts.length) { tMet.push("", "CONDICIONANTES TERAPÉUTICOS"); R.alerts.forEach(a => tMet.push(`- ${a[1]}: ${a[2]}`)); }
+  tMet.push("", SRC_MET);
   TXT = { all: [head, ...tPso, ...tMet].join("\n"), pso: [head, ...tPso].join("\n"), met: [head, ...tMet].join("\n") };
   $("#sumText").value = TXT.all;
   LAST = { C, rows, aedvTxt, aedv, aad, aadWhy, ipc };
@@ -1427,6 +1551,7 @@ function summary(C) {
    ============================================================ */
 function parseVal(path, raw) {
   if (path === "pga.ver" || path === "ppasi.mode" || path === "metab.sex" || path === "metab.lpaU") return raw;
+  if (path === "patient.week") return parseInt(raw, 10);
   if (raw === "np") return "np";
   return raw.includes(".") ? parseFloat(raw) : parseInt(raw, 10);
 }
@@ -1442,9 +1567,10 @@ document.addEventListener("click", e => {
     const p = b.dataset.path, v = parseVal(p, b.dataset.val);
     const cur = getP(S, p);
     // pulsar de nuevo una escala de selección única la deja sin valorar
-    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|pure4\.\d|habits\.\w+|metab\.sex|itch)$/.test(p);
+    const nullable = /^(pga\.(iga5|pga7|dyn)|sspga|pppga|spgag|dlqi\.\d|pure4\.\d|habits\.\w+|metab\.sex|itch|patient\.week)$/.test(p);
     setP(S, p, nullable && String(cur) === String(v) ? null : v);
-    S.example = false; update();
+    if (!p.startsWith("patient")) S.example = false;
+    update();
   }
 });
 document.addEventListener("focusout", e => { if (e.target.matches?.("input[data-regpct], input[data-num], input[data-lab]")) setTimeout(update); });
@@ -1494,7 +1620,7 @@ function buildPrint() {
   const eidRow = (name, o, extra = "") => [name, o.e, o.i, o.d, `${o.a} (${AREA_GRADES[o.a][1]})`, extra];
   const today = new Date().toLocaleDateString("es-ES");
   const vdate = S.patient.date ? new Date(S.patient.date + "T00:00").toLocaleDateString("es-ES") : "—";
-  let h = `<header class="pr-head"><div><h1>Informe de evaluación de psoriasis</h1><div>Paciente / NHC: <b>${esc(S.patient.name || "—")}</b></div></div><div class="pr-meta">Fecha de visita: <b>${vdate}</b><br>Impreso: ${today}</div></header>`;
+  let h = `<header class="pr-head"><div><h1>Informe de evaluación de psoriasis</h1><div>Paciente / NHC: <b>${esc(S.patient.name || "—")}</b></div></div><div class="pr-meta">Fecha de visita: <b>${vdate}</b><br>Momento: <b>${weekTxt(S.patient.week)}</b><br>Impreso: ${today}</div></header>`;
 
   h += sec("Clasificación de la gravedad", `<div class="pr-class">
     <div>AEDV<b>${aedvTxt}</b>${aedv.length ? aedv.join("; ") : "Ningún criterio de moderada-grave"}</div>
@@ -1537,7 +1663,7 @@ function buildPrint() {
   if (crit.length) h += sec("Criterios clínicos adicionales", "<p>" + crit.join(" · ") + "</p>");
 
   h += `<div class="pr-sign"><div>Facultativo/a</div><div>Firma</div></div>`;
-  h += `<p class="pr-foot">Escalas: PASI y BSA (AEDV 2016), PGA (${S.pga.ver === "iga5" ? "IGA 0–4, Langley 2015" : S.pga.ver === "pga7" ? "estático 0–6, AEDV" : "dinámico"}), DLQI (© Finlay y Khan, Cardiff University), NAPSI (Rich y Scher 2003), PURE-4 (Audureau 2018; Belinchón 2020). Clasificación: Daudén et al. JEADV 2016; Menter et al. JAAD 2019; Strober et al. JAAD 2020. Las imágenes son ilustraciones esquemáticas orientativas.</p>`;
+  h += `<p class="pr-foot">Escalas: PASI y BSA (AEDV 2016), PGA (${S.pga.ver === "iga5" ? "IGA 0–4, Langley 2015" : S.pga.ver === "pga7" ? "estático 0–6, AEDV" : "dinámico"}), DLQI (© Finlay y Khan, Cardiff University), NAPSI (Rich y Scher 2003), PURE-4 (Audureau 2018; Belinchón 2020). Clasificación: Daudén et al. JEADV 2016; Menter et al. JAAD 2019; Strober et al. JAAD 2020. Las imágenes son ilustraciones esquemáticas orientativas.</p><p class="pr-foot">${SRC_PSO}</p><p class="pr-foot">${SRC_MET}</p>`;
   $("#printReport").innerHTML = h;
 }
 let framed = true; try { framed = window.self !== window.top; } catch (_) { framed = true; }
