@@ -268,6 +268,12 @@ textarea.out{width:100%;min-height:160px;font-family:var(--f-mono);font-size:.8r
   .stephead{display:none}
 }
 .print-only{display:none}
+.labgrid{columns:2 260px;column-gap:24px}
+.labgrp{break-inside:avoid;margin-bottom:14px}
+.labgrp h4{margin:0 0 6px;font-size:.95rem}
+.labgrp ul{list-style:none;margin:0;padding:0}
+.labgrp li{display:flex;align-items:flex-start;gap:8px;padding:3px 0;font-size:.92rem}
+.labbox{flex:none;display:inline-block;width:13px;height:13px;margin-top:3px;border:1.5px solid var(--muted);border-radius:2px}
 @media print{
   @page{size:A4;margin:13mm 14mm}
   :root{color-scheme:light;padding:0!important}
@@ -292,6 +298,11 @@ textarea.out{width:100%;min-height:160px;font-family:var(--f-mono);font-size:.8r
   .pr-sign{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px;font-size:9pt}
   .pr-sign div{border-top:1px solid #111;padding-top:3px}
   .pr-foot{margin-top:12px;font-size:7.5pt;color:#555}
+  .labgrid{columns:2;column-gap:18px}
+  .labgrp{margin-bottom:9px}
+  .labgrp h4{font-size:10pt;margin:0 0 3px;border-bottom:1px solid #999}
+  .labgrp li{font-size:10pt;padding:2.5px 0}
+  .labbox{width:11px;height:11px;border:1.2px solid #111}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -607,16 +618,24 @@ const METAB_GROUPS = [
   ["Hemograma · fórmula leucocitaria (índices de inflamación sistémica)", [["neu", "Neutrófilos", "×10³/µL"], ["lym", "Linfocitos", "×10³/µL"], ["mono", "Monocitos", "×10³/µL"]], []],
 ];
 const METAB_KEYS = ["age", ...METAB_GROUPS.flatMap(g => g[1].map(f => f[0]))];
+/* Parámetros analíticos que usa la app: un único listado para la pantalla, el texto copiable y la hoja impresa */
+const LAB_GROUPS = [
+  ["Hemograma", ["Hemograma completo con fórmula leucocitaria (neutrófilos, linfocitos, monocitos)", "Recuento de plaquetas"]],
+  ["Eje glucémico (en ayunas)", ["Glucosa basal", "HbA1c", "Insulina basal"]],
+  ["Perfil lipídico (en ayunas)", ["Colesterol total", "c-HDL", "c-LDL", "Triglicéridos", "Apolipoproteína A1", "Apolipoproteína B", "Lipoproteína(a)", "Homocisteína"]],
+  ["Perfil hepático", ["AST (GOT)", "ALT (GPT)", "GGT", "Fosfatasa alcalina", "Bilirrubina total"]],
+  ["Función renal", ["Creatinina (con FGe CKD-EPI)", "Ácido úrico"]],
+  ["Inflamación", ["Proteína C reactiva (PCR)", "VSG"]],
+  ["Orina", ["Sedimento", "Cociente albúmina/creatinina (CACu)"]],
+  ["Cribado de infecciones", ["Mantoux o IGRA", "VHB: HBsAg, anti-HBc y anti-HBs", "VHC: anti-VHC", "VIH: anti-VIH"]],
+];
+const LAB_CONSULTA = ["Peso", "Talla", "Perímetro de cintura", "Porcentaje de grasa corporal (impedanciómetro)", "Presión arterial"];
 const LAB_REQ = [
   "SOLICITUD DE CONTROL METABÓLICO EN PSORIASIS",
-  "1. Hemograma completo (recuento de plaquetas para el FIB-4).",
-  "2. Eje glucémico: glucosa basal en ayunas, HbA1c [opcional: insulina basal para HOMA-IR].",
-  "3. Perfil lipídico: colesterol total, c-HDL, c-LDL, triglicéridos, colesterol no-HDL, apolipoproteína A1, apolipoproteína B y homocisteína (en ayunas).",
-  "4. Perfil hepático (MASLD): AST (GOT), ALT (GPT), GGT, fosfatasa alcalina, bilirrubina total.",
-  "5. Función renal e inflamación: creatinina, FGe (CKD-EPI), ácido úrico, proteína C reactiva (PCR).",
-  "6. Orina: sedimento y cociente albúmina/creatinina (CAC).",
-  "7. En consulta: peso, talla (IMC), perímetro de cintura, porcentaje de grasa corporal (impedanciómetro) y presión arterial.",
+  ...LAB_GROUPS.map(([g, it], k) => `${k + 1}. ${g}: ${it.join(", ")}.`),
+  `${LAB_GROUPS.length + 1}. En consulta: ${LAB_CONSULTA.join(", ").toLowerCase()}.`,
 ].join("\n");
+const labList = () => LAB_GROUPS.concat([["En consulta (sin laboratorio)", LAB_CONSULTA]]).map(([g, it]) => `<div class="labgrp"><h4>${g}</h4><ul>${it.map(x => `<li><span class="labbox" aria-hidden="true"></span>${x}</li>`).join("")}</ul></div>`).join("");
 /* Momento de la medición dentro del seguimiento */
 const WEEKS = [["0", "Basal"], ["12", "Semana 12"], ["16", "Semana 16"], ["24", "Semana 24"], ["52", "Semana 52"], ["104", "Semana 104"]];
 const weekTxt = w => w == null ? "sin indicar" : +w === 0 ? "basal" : "semana " + w;
@@ -996,7 +1015,7 @@ const SECTIONS = [
   { t: "met", g: "Resultados", k: "metab", n: "Síndrome metabólico", sub: "Índices, criterios y alertas" },
   { t: "met", g: "Resultados", k: "cvrisk", n: "Riesgo cardiovascular", sub: "Castelli, Lp(a), ApoB/ApoA1, homocisteína, % grasa, SCORE2, REGICOR" },
   { t: "met", g: "Resultados", k: "inflam", n: "Inflamación y riñón", sub: "PCR, VSG, NLR, SII, CACu" },
-  { t: "met", g: "Herramientas", k: "labreq", n: "Petición de analítica", sub: "Texto para el volante" },
+  { t: "met", g: "Herramientas", k: "labreq", n: "Petición de analítica", sub: "Parámetros a solicitar, imprimible" },
   { t: "inf", g: "Informe", k: "informe", n: "Informe", sub: "Texto para la historia clínica" },
 ];
 
@@ -1207,8 +1226,9 @@ function buildMain() {
   </section>`;
   h += `<section class="panel" id="sec-cvrisk" data-sec="cvrisk">${phead("Riesgo cardiometabólico · resultados", "Riesgo cardiovascular", "Riesgo aterogénico, índices glucometabólicos, lipoproteína(a), apolipoproteínas, riesgo cardiovascular a 10 años (SCORE2 y REGICOR), porcentaje de grasa corporal y homocisteína.")}${rAt}${rLpa}${rApo}${rCv}${rExtra}</section>`;
   h += `<section class="panel" id="sec-inflam" data-sec="inflam">${phead("Riesgo cardiometabólico · resultados", "Inflamación sistémica y función renal", "Reactantes de fase aguda, índices de inflamación sistémica e inmunotrombosis y albuminuria.")}${rCrp}${rInf}${rUacr}</section>`;
-  h += `<section class="panel" id="sec-labreq" data-sec="labreq">${phead("Riesgo cardiometabólico · herramientas", "Petición de analítica", "Texto listo para copiar en el volante de laboratorio o el protocolo de enfermería.")}
-  <div class="card"><div class="card-h"><h3>Petición de analítica</h3><button type="button" class="btn primary" id="copyLabBtn">Copiar solicitud</button></div><textarea class="out" id="labText" readonly aria-label="Solicitud de analítica" style="min-height:190px">${LAB_REQ}</textarea><span class="small muted" id="copyLabMsg" aria-live="polite"></span></div>
+  h += `<section class="panel" id="sec-labreq" data-sec="labreq">${phead("Riesgo cardiometabólico · herramientas", "Petición de analítica", "Todos los parámetros que usa la app, para imprimir como lista de comprobación o copiar en el volante de laboratorio.")}
+  <div class="card"><div class="card-h"><h3>Parámetros a solicitar</h3><button type="button" class="btn primary" id="printLabBtn">Imprimir petición</button></div><div class="labgrid">${labList()}</div><p class="note" id="printLabNote" hidden>La impresión no está disponible en esta vista previa. Abre la app en luciamc80.github.io/escalas-psoriasis o el archivo descargado para imprimir.</p></div>
+  <div class="card"><div class="card-h"><h3>Texto para el volante</h3><button type="button" class="btn" id="copyLabBtn">Copiar solicitud</button></div><textarea class="out" id="labText" readonly aria-label="Solicitud de analítica" style="min-height:190px">${LAB_REQ}</textarea><span class="small muted" id="copyLabMsg" aria-live="polite"></span></div>
   </section>`;
 
   /* ---------- Resumen ---------- */
@@ -1610,7 +1630,13 @@ $("#bsaToPasi").addEventListener("click", () => {
    Informe imprimible
    ============================================================ */
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+let labPrint = false;
+function buildLabPrint() {
+  const vdate = S.patient.date ? new Date(S.patient.date + "T00:00").toLocaleDateString("es-ES") : "—";
+  $("#printReport").innerHTML = `<header class="pr-head"><div><h1>Petición de analítica · psoriasis</h1><div>Paciente / NHC: <b>${esc(S.patient.name || "—")}</b></div></div><div class="pr-meta">Fecha de visita: <b>${vdate}</b><br>Momento: <b>${weekTxt(S.patient.week)}</b></div></header><div class="labgrid">${labList()}</div><p class="pr-foot">Glucosa, insulina, lípidos y homocisteína en ayunas. La Lp(a) se recomienda al menos una vez en la vida (consenso ESC/EAS 2022).</p><div class="pr-sign"><div>Facultativo/a</div><div>Firma</div></div>`;
+}
 function buildPrint() {
+  if (labPrint) return buildLabPrint();
   update();
   const { C, rows, aedvTxt, aedv, aad, aadWhy, ipc } = LAST;
   const tbl = (head, body) => `<table><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${body.map(r => `<tr>${r.map((c, k) => `<td${k > 0 && /^[-+\d.,\s\/%—]+$/.test(String(c)) ? ' class="n"' : ""}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
@@ -1667,6 +1693,9 @@ function buildPrint() {
 let framed = true; try { framed = window.self !== window.top; } catch (_) { framed = true; }
 function doPrint() { buildPrint(); window.print(); }
 window.addEventListener("beforeprint", buildPrint);
+window.addEventListener("afterprint", () => { labPrint = false; });
+if (framed) { $("#printLabBtn").hidden = true; $("#printLabNote").hidden = false; }
+else $("#printLabBtn").addEventListener("click", () => { labPrint = true; buildLabPrint(); window.print(); });
 $$("#btnPrint, #printBtn").forEach(b => { if (framed) b.hidden = true; else b.addEventListener("click", doPrint); });
 if (framed) { const n = $("#printNote"); if (n) n.hidden = false; }
 function copyFrom(ta, msg) {
