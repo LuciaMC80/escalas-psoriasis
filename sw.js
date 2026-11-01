@@ -1,6 +1,6 @@
 // Escalas de Psoriasis: funcionamiento sin conexión
-const CACHE = "psoriasis-v16";
-const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
+const CACHE = "psoriasis-v19";
+const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png", "vendor/pdfjs-4.10.38/pdf.min.mjs", "vendor/pdfjs-4.10.38/pdf.worker.min.mjs"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
