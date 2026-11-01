@@ -329,7 +329,7 @@ img{max-width:100%}
   <main id="main"></main>
 </div>
 <div id="printReport" class="print-only" aria-hidden="true"></div>
-<p class="disclaimer">Herramienta de apoyo para el cálculo de índices. Las imágenes son ilustraciones esquemáticas recreadas por ordenador con fines orientativos y no sustituyen a la exploración ni al juicio clínico. Fuentes: Grupo de Psoriasis AEDV (2016); Daudén et al. JEADV 2016; NICE CG153; Menter et al. JAAD 2019; Strober et al. JAAD 2020 (IPC); Rich &amp; Scher JAAD 2003 (NAPSI); Langley et al. 2015 (IGA); Finlay &amp; Khan 1994 (DLQI © Cardiff University); Reich et al. 2012 (NRS prurito); Mach et al. 2020 (ESC/EAS); Gallagher et al. AJCN 2000 (grasa corporal). Los datos se guardan solo en este navegador.</p>
+<p class="disclaimer">Herramienta de apoyo para el cálculo de índices. Las imágenes son ilustraciones esquemáticas recreadas por ordenador con fines orientativos y no sustituyen a la exploración ni al juicio clínico. Fuentes: Grupo de Psoriasis AEDV (2016); Daudén et al. JEADV 2016; NICE CG153; Menter et al. JAAD 2019; Strober et al. JAAD 2020 (IPC); Rich &amp; Scher JAAD 2003 (NAPSI); Langley et al. 2015 (IGA); Finlay &amp; Khan 1994 (DLQI © Cardiff University); Reich et al. 2012 (NRS prurito); Mach et al. 2020 (ESC/EAS); Guía GIRO, SEEDO 2024 (grasa corporal). Los datos se guardan solo en este navegador.</p>
 
 <script>
 "use strict";
@@ -597,7 +597,7 @@ const habitsCard = () => `<div class="card"><div class="card-h"><h3>Hábitos</h3
 
 /* Riesgo cardiometabólico: exploración y analítica */
 const METAB_GROUPS = [
-  ["Antropometría y presión arterial", [["weight", "Peso", "kg"], ["height", "Talla", "cm"], ["waist", "Perímetro de cintura", "cm", "H < 102 · M < 88"], ["bf", "Grasa corporal (Omron)", "%", "según edad y sexo"], ["sbp", "PA sistólica", "mmHg"], ["dbp", "PA diastólica", "mmHg"]], [["txHta", "En tratamiento antihipertensivo"]],
+  ["Antropometría y presión arterial", [["weight", "Peso", "kg"], ["height", "Talla", "cm"], ["waist", "Perímetro de cintura", "cm", "H < 102 · M < 88"], ["bf", "Grasa corporal (Omron)", "%", "H ≤ 25 · M ≤ 35"], ["sbp", "PA sistólica", "mmHg"], ["dbp", "PA diastólica", "mmHg"]], [["txHta", "En tratamiento antihipertensivo"]],
     `<div class="imcbox"><span class="eyebrow">IMC calculado</span><span><span class="val" data-out="m-imc">—</span> <span class="small muted">kg/m²</span></span><span class="sevpill" data-sevout="m-imc">—</span></div><div class="imcbox"><span class="eyebrow">Grasa corporal</span><span><span class="val" data-out="r-bf">—</span> <span class="small muted">%</span></span><span class="sevpill" data-sevout="r-bf">—</span></div>`],
   ["Eje glucémico", [["glu", "Glucosa basal", "mg/dL", "< 100"], ["hba1c", "HbA1c", "%", "< 5,7"], ["ins", "Insulina basal (opcional)", "µU/mL", "para HOMA-IR"]], [["txDm", "Diabetes diagnosticada o en tratamiento"]]],
   ["Perfil lipídico", [["tc", "Colesterol total", "mg/dL"], ["hdl", "c-HDL", "mg/dL", "H ≥ 40 · M ≥ 50"], ["ldl", "c-LDL", "mg/dL"], ["tg", "Triglicéridos", "mg/dL", "< 150"], ["lpa", "Lipoproteína(a) · Lp(a)", `<span data-out="lpaU">mg/dL</span>`, "< 30 mg/dL · < 75 nmol/L"], ["apoa", "Apolipoproteína A1 · ApoA1", "mg/dL", "H ≥ 120 · M ≥ 140"], ["apob", "Apolipoproteína B · ApoB", "mg/dL", "< 100"], ["hcy", "Homocisteína", "µmol/L", "≤ 15"]], [["txLip", "En tratamiento hipolipemiante (estatinas / fibratos)"]],
@@ -633,7 +633,7 @@ const REF_RANGES = [
   ["Exploración", [
     ["IMC", "&lt; 18,5 · 18,5–24,9 · 25–29,9 · ≥ 30 kg/m²", "OMS / NIH"],
     ["Cintura y presión arterial", "Cintura &gt; 102 H / &gt; 88 M cm · PA ≥ 130/85 mmHg", "NCEP-ATP III"],
-    ["Grasa corporal", "Según edad y sexo, 20–79 años (ver «Riesgo cardiovascular»)", "Gallagher et al., AJCN 2000"],
+    ["Grasa corporal", "Rango de obesidad &gt; 25 % H / &gt; 35 % M", "Guía española GIRO (SEEDO), 2024"],
   ]],
   ["Glucemia", [
     ["Glucosa basal", "&lt; 100 · 100–125 prediabetes · ≥ 126 mg/dL diabetes", "ADA, Standards of Care"],
@@ -669,7 +669,7 @@ const REF_RANGES = [
   ]],
 ];
 const SRC_PSO = "Fuentes de los rangos: PASI y BSA, Daudén et al. JEADV 2016 (AEDV); IGA, Langley et al. 2015; DLQI, Hongbo et al. J Invest Dermatol 2005; EVA del picor, Reich et al. 2012; PURE-4, Audureau et al. JEADV 2018. NAPSI, PSSI, PPASI y GPSI no tienen categorías publicadas: «baja, intermedia, alta» es un criterio propio de la app.";
-const SRC_MET = "Fuentes de los rangos: IMC, OMS/NIH; cintura, presión arterial, lípidos y síndrome metabólico, NCEP-ATP III; grasa corporal, Gallagher et al. AJCN 2000; glucosa y HbA1c, ADA; Lp(a), consenso ESC/EAS 2022; ApoB, ESC/EAS 2019 y AHA/ACC 2018; ApoA1, ESC/EAS 2011; homocisteína, NCBI Bookshelf NBK554408; AST, ALT, GGT y plaquetas, MedlinePlus (NIH); FIB-4, Sterling et al. 2006, Shah et al. 2009 y McPherson et al. 2017; FGe y albuminuria, CKD-EPI 2021 y KDIGO; PCR, AHA/CDC; VSG, Miller et al. BMJ 1983; Castelli, Millán et al. 2009; SCORE2, ESC 2021; REGICOR, Marrugat et al. 2003. Sin fuente confirmada: HOMA-IR y ácido úrico. Índices de inflamación y TyG: orientativos, sin consenso.";
+const SRC_MET = "Fuentes de los rangos: IMC, OMS/NIH; cintura, presión arterial, lípidos y síndrome metabólico, NCEP-ATP III; grasa corporal, Guía GIRO (SEEDO) 2024; glucosa y HbA1c, ADA; Lp(a), consenso ESC/EAS 2022; ApoB, ESC/EAS 2019 y AHA/ACC 2018; ApoA1, ESC/EAS 2011; homocisteína, NCBI Bookshelf NBK554408; AST, ALT, GGT y plaquetas, MedlinePlus (NIH); FIB-4, Sterling et al. 2006, Shah et al. 2009 y McPherson et al. 2017; FGe y albuminuria, CKD-EPI 2021 y KDIGO; PCR, AHA/CDC; VSG, Miller et al. BMJ 1983; Castelli, Millán et al. 2009; SCORE2, ESC 2021; REGICOR, Marrugat et al. 2003. Sin fuente confirmada: HOMA-IR y ácido úrico. Índices de inflamación y TyG: orientativos, sin consenso.";
 
 /* PURE-4 · Psoriatic arthritis UnclutteRed screening Evaluation (adaptación española, Belinchón et al. 2020) */
 const PURE4_Q = [
@@ -817,15 +817,13 @@ function sevApoA(v, sex, fem) { return v == null ? [0, "—"] : !sex ? [0, "Indi
 const sevApoB = v => sevBand(v, [[65, 1, "Cumple todos los objetivos ESC/EAS (< 65)"], [80, 1, "Cumple el objetivo de riesgo alto (< 80), no el de muy alto"], [100, 1, "Cumple el objetivo de riesgo moderado (< 100), no el de alto"], [130, 2, "Elevada (≥ 100)"], [Infinity, 3, "Muy elevada (≥ 130): potenciador de riesgo"]]);
 const sevApoR = v => v == null ? [0, "—"] : [0, "Sin punto de corte en guías; estima el riesgo, no es objetivo terapéutico"];
 const sevHcy = v => v == null ? [0, "—"] : v > 100 ? [4, "Hiperhomocisteinemia grave (> 100)"] : v > 30 ? [3, "Hiperhomocisteinemia intermedia (31–100)"] : v > 15 ? [2, "Hiperhomocisteinemia moderada (16–30)"] : [1, "Normal (≤ 15)"];
-// Grasa corporal: Gallagher et al. AJCN 2000 (rangos que recoge el manual de Omron). Límites de normal, alto y muy alto
-const BF_RANGES = { H: [[40, [8, 20, 25]], [60, [11, 22, 28]], [80, [13, 25, 30]]], M: [[40, [21, 33, 39]], [60, [23, 34, 40]], [80, [24, 36, 42]]] };
-const BF_HIGH = R => R.sex && R.age >= 20 && R.age < 80 ? BF_RANGES[R.sex].find(b => R.age < b[0])[1][1] : Infinity;
+// Grasa corporal: rango de obesidad según la Guía española GIRO (SEEDO, 2024), en adultos
 function sevBF(v, age, sex) {
   if (v == null) return [0, "—"];
-  if (!sex || age == null) return [0, "Indica edad y sexo"];
-  if (age < 20 || age >= 80) return [0, "Sin referencia para esta edad (20–79 años)"];
-  const [lo, hi, vh] = BF_RANGES[sex].find(b => age < b[0])[1];
-  return v < lo ? [2, `Bajo (< ${lo})`] : v < hi ? [1, `Normal (${lo}–${fmt(hi - .1)})`] : v < vh ? [2, `Alto (${hi}–${fmt(vh - .1)})`] : [3, `Muy alto (≥ ${vh})`];
+  if (!sex) return [0, "Indica el sexo"];
+  if (age != null && age < 18) return [0, "Referencia solo para adultos"];
+  const cut = sex === "M" ? 35 : 25;
+  return v > cut ? [3, `Rango de obesidad (> ${cut})`] : [1, `Por debajo del rango de obesidad (≤ ${cut})`];
 }
 function metabAlerts(R) {
   const A = [], H = S.habits || {};
@@ -1047,7 +1045,7 @@ function riskCards() {
 <!--SPLIT--><div class="card"><div class="card-h"><h3>Apolipoproteínas · ApoA1 y ApoB</h3><span class="small muted">Partículas aterogénicas y antiaterogénicas</span></div><div class="kpis">${kpi("apoa", "ApoA1", "mg/dL")}${kpi("apob", "ApoB", "mg/dL")}${kpi("apor", "Cociente ApoB/ApoA1")}</div><div class="implic" data-out="r-apoMsg"></div>
   <p class="note">ApoB: objetivos ESC/EAS 2019 según el riesgo: < 100 mg/dL moderado, < 80 alto, < 65 muy alto; ≥ 130 mg/dL es potenciador de riesgo (ACC/AHA 2018). ApoA1: baja si < 120 mg/dL (H) / < 140 mg/dL (M) (ESC/EAS 2011). Cociente ApoB/ApoA1: las guías ESC/EAS lo consideran útil para estimar el riesgo, pero no como diagnóstico ni objetivo terapéutico, y no fijan punto de corte. Si el laboratorio informa en g/L, multiplica por 100. Se introducen en «Analítica · Perfil lipídico».</p></div>
 <!--SPLIT--><div class="grid2"><div class="card"><div class="card-h"><h3>Grasa corporal · impedancia</h3><span class="small muted">Omron Body Fat Monitor</span></div><div class="kpis">${kpi("bf", "Grasa corporal", "%")}</div><div class="implic" data-out="r-bfMsg"></div>
-  <p class="note">Rangos según Gallagher et al. (AJCN 2000), 20–79 años. Hombres: normal 8–19,9 % (20–39 años), 11–21,9 % (40–59), 13–24,9 % (60–79); muy alto ≥ 25, ≥ 28 y ≥ 30 %. Mujeres: normal 21–32,9 %, 23–33,9 %, 24–35,9 %; muy alto ≥ 39, ≥ 40 y ≥ 42 %. Parámetro complementario: no entra en el cálculo de SCORE2 ni de REGICOR. Medir en condiciones parecidas en cada visita (hora, hidratación, sin ejercicio ni comida reciente). No usar en portadores de marcapasos u otros implantes electrónicos.</p></div>
+  <p class="note">Rango de obesidad en adultos: > 25 % en varones y > 35 % en mujeres (Guía española GIRO, SEEDO 2024). La guía señala que estos valores aún no están bien establecidos y que aumentan con la edad. Parámetro complementario: no entra en el cálculo de SCORE2 ni de REGICOR. Medir en condiciones parecidas en cada visita (hora, hidratación, sin ejercicio ni comida reciente). No usar en personas con marcapasos u otros implantes médicos ni en el embarazo (manual del dispositivo).</p></div>
   <div class="card"><div class="card-h"><h3>Homocisteína</h3><span class="small muted">En ayunas</span></div><div class="kpis">${kpi("hcy", "Homocisteína", "µmol/L")}</div><div class="implic" data-out="r-hcyMsg"></div>
   <p class="note">5–15 µmol/L normal · 16–30 moderada · 31–100 intermedia · > 100 grave (NCBI Bookshelf NBK554408). Reducirla con vitaminas del grupo B no ha mostrado beneficio sobre el infarto ni la mortalidad, con una reducción pequeña del ictus (Martí-Carvajal et al., Cochrane 2017); por eso no se usa para reclasificar el riesgo. Se introduce en «Analítica · Perfil lipídico».</p></div></div>`;
 }
@@ -1380,7 +1378,7 @@ function update() {
   out("lpaU", (S.metab || {}).lpaU === "nmol" ? "nmol/L" : "mg/dL");
   out("r-lpa", LA ? fmt(LA.v, 0) : "—"); sevOut("r-lpa", LA ? LA.sv : [0, "—"]);
   out("r-lpaMsg", !LA ? para("Introduce la Lp(a) en «Analítica · Perfil lipídico».") : LA.sv[0] >= 3 ? para("<b>Lp(a) elevada:</b> factor de riesgo cardiovascular causal e independiente, determinado genéticamente y poco modificable con la dieta o el ejercicio. Reclasifica el riesgo al alza: controlar de forma más estricta el resto de factores (c-LDL, presión arterial, tabaco) y valorar el cribado en familiares de primer grado." + (LA.sv[0] === 4 ? " Con estos valores el riesgo de por vida es comparable al de la hipercolesterolemia familiar heterocigota." : "")) : LA.sv[0] === 2 ? para("Zona gris: interpretar junto con el resto de factores de riesgo.") : para("Lp(a) no aumentada; no es necesario repetirla salvo cambio clínico."));
-  const bfS = sevBF(R.bf, R.age, R.sex), bfHi = bfS[0] >= 2 && R.bf >= BF_HIGH(R), hcS = sevHcy(R.hcy);
+  const bfS = sevBF(R.bf, R.age, R.sex), bfHi = bfS[0] === 3, hcS = sevHcy(R.hcy);
   [["bf", R.bf, 1, bfS], ["apoa", R.apoa, 0, sevApoA(R.apoa, R.sex, R.fem)], ["apob", R.apob, 0, sevApoB(R.apob)], ["apor", R.apor, 2, sevApoR(R.apor)], ["hcy", R.hcy, 1, hcS]]
     .forEach(([k, v, d, sv]) => { out("r-" + k, v == null ? "—" : fmt(v, d)); sevOut("r-" + k, sv); });
   const s2Cat = X.s2adj == null ? 0 : sevScore2(X.s2adj, R.age)[0], apoGoal = s2Cat === 3 ? 65 : s2Cat === 2 ? 80 : s2Cat === 1 ? 100 : null;
@@ -1388,7 +1386,7 @@ function update() {
     R.apob == null ? "" : (R.apob >= 100 ? "<b>ApoB elevada:</b> mayor número de partículas aterogénicas circulantes; es especialmente útil con hipertrigliceridemia, diabetes, obesidad o síndrome metabólico, cuando el c-LDL puede infraestimar el riesgo." : "ApoB por debajo de 100 mg/dL.") + (apoGoal ? ` Con la categoría de ${X.s2name} actual, el objetivo orientativo es &lt; ${apoGoal} mg/dL (${R.apob < apoGoal ? "cumplido" : "no cumplido"}).` : ""),
     R.apoa == null ? "" : sevApoA(R.apoa, R.sex, R.fem)[0] === 2 ? "<b>ApoA1 baja:</b> equivale a un c-HDL bajo; se asocia a mayor riesgo cardiovascular." : "",
   ].filter(Boolean).map(para).join(""));
-  out("r-bfMsg", R.bf == null ? para("Introduce el porcentaje de grasa en «Datos y exploración».") : bfS[0] === 0 ? para(bfS[1] + ".") : bfHi ? para(`<b>Exceso de grasa corporal:</b> ${R.imc != null && R.imc < 25 ? "con IMC normal (patrón de obesidad de peso normal), situación que el IMC por sí solo no detecta. " : ""}Refuerza la indicación de intervención sobre dieta y ejercicio. Es más útil para seguir la evolución del mismo paciente que como valor aislado.`) : para(bfS[0] === 2 ? "Porcentaje de grasa por debajo del rango de referencia." : "Porcentaje de grasa dentro del rango de referencia."));
+  out("r-bfMsg", R.bf == null ? para("Introduce el porcentaje de grasa en «Datos y exploración».") : bfS[0] === 0 ? para(bfS[1] + ".") : bfHi ? para(`<b>Exceso de grasa corporal:</b> ${R.imc != null && R.imc < 25 ? "con IMC normal (patrón de obesidad de peso normal), situación que el IMC por sí solo no detecta. " : ""}Refuerza la indicación de intervención sobre dieta y ejercicio. Es más útil para seguir la evolución del mismo paciente que como valor aislado.`) : para("Porcentaje de grasa por debajo del rango de obesidad."));
   out("r-hcyMsg", R.hcy == null ? para("Introduce la homocisteína en «Analítica · Perfil lipídico».") : hcS[0] >= 2 ? para("<b>Homocisteína elevada:</b> frecuente en la psoriasis y con metotrexato. Descartar déficit de folato o vitamina B12, insuficiencia renal e hipotiroidismo; revisar la suplementación con ácido fólico.") : para("Homocisteína en rango normal."));
   const mods = [LA && LA.sv[0] >= 3 && "Lp(a) elevada", R.apob >= 130 && "ApoB ≥ 130 mg/dL", R.crp > 3 && R.crp <= 10 && "PCR > 3 mg/L", R.uacr >= 30 && "albuminuria", R.smCount >= 3 && "síndrome metabólico"].filter(Boolean);
   const extras = [bfHi && "exceso de grasa corporal", hcS[0] >= 2 && "homocisteína elevada"].filter(Boolean);
@@ -1448,7 +1446,7 @@ function summary(C) {
       m("Peso", R.weight, 1, "kg", "—"), m("Talla", R.height, 0, "cm", "—"),
       m("IMC", R.imc, 1, "kg/m²", sevIMC(R.imc)[1]),
       m("Perímetro de cintura", R.waist, 1, "cm", R.sm[0][1] === null ? "Indica el sexo" : R.sm[0][1] ? "Obesidad abdominal" : "Normal"),
-      m("Grasa corporal (impedancia, Omron)", R.bf, 1, "%", sevBF(R.bf, R.age, R.sex)[1] + (R.bf >= BF_HIGH(R) && R.imc != null && R.imc < 25 ? " con IMC normal: obesidad de peso normal" : "")),
+      m("Grasa corporal (impedancia, Omron)", R.bf, 1, "%", sevBF(R.bf, R.age, R.sex)[1] + (sevBF(R.bf, R.age, R.sex)[0] === 3 && R.imc != null && R.imc < 25 ? " con IMC normal: obesidad de peso normal" : "")),
       R.sbp != null || R.dbp != null || R.txHta ? ["Presión arterial", `${R.sbp ?? "—"}/${R.dbp ?? "—"} mmHg`, (R.sm[1][1] ? "≥ 130/85 o tratamiento" : "Normal") + (R.txHta ? " · en tratamiento" : "")] : null,
     ]);
     grp("Eje glucémico", [
