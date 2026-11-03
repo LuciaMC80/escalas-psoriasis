@@ -300,6 +300,8 @@ textarea.out{width:100%;min-height:160px;font-family:var(--f-mono);font-size:.8r
   .pr-sign{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px;font-size:9pt}
   .pr-sign div{border-top:1px solid #111;padding-top:3px}
   .pr-foot{margin-top:12px;font-size:7.5pt;color:#555}
+  .pr-data{break-inside:avoid;margin-top:12px;font-size:7.5pt;color:#333}
+  .pr-data pre{font-family:var(--f-mono);font-size:6.5pt;line-height:1.25;white-space:pre-wrap;word-break:break-all;margin:4px 0 0;color:#000}
   .labgrid{columns:2;column-gap:18px}
   .labgrp{margin-bottom:9px}
   .labgrp h4{font-size:10pt;margin:0 0 3px;border-bottom:1px solid #999}
@@ -777,6 +779,9 @@ const PAC = [
 const PAC_F = { hist: {}, visit: {} };
 PAC.forEach(([, , , sc, fs]) => fs.forEach(f => { PAC_F[sc][f[0]] = f; }));
 const pacShown = (st, f) => !f[4] || !!f[4](st);
+const pacLabel = f => f[1].replace(/ \((varias opciones|si los? toma|si l[oa] ha habido)\)/, "");
+// Secciones de «Paciente y tratamiento» que van al informe (los eventos, solo en el seguimiento)
+const pacReport = () => PAC.filter(sec => sec[0] !== "eventos" || S.patient.week !== 0).map(sec => [sec, pacVals(sec)]).filter(([, vs]) => vs.length);
 const pacTxt = (f, v) => Array.isArray(v) ? v.join("; ") : f[2] === "date" ? v.split("-").reverse().join("/") : f[2] === "num" ? (f[3] === "año" ? String(v) : fmt(v, 1) + " " + f[3]) : String(v);
 // Datos con valor y visibles de una sección
 const pacVals = sec => { const st = S[sec[3]] || {}; return sec[4].filter(f => pacShown(st, f) && nz(st[f[0]])).map(f => [f, st[f[0]]]); };
@@ -1809,7 +1814,7 @@ function summary(C) {
   tMet.push("", SRC_MET, serMet());
   // Paciente y tratamiento: todos los datos rellenados, sección a sección
   const tPac = [];
-  PAC.forEach(sec => { const vs = pacVals(sec); if (vs.length && (sec[0] !== "eventos" || S.patient.week !== 0)) tPac.push("", sec[1].toUpperCase(), ...vs.map(([f, v]) => `- ${f[1].replace(/ \((varias opciones|si los? toma|si l[oa] ha habido)\)/, "")}: ${pacTxt(f, v)}`)); });
+  pacReport().forEach(([sec, vs]) => tPac.push("", sec[1].toUpperCase(), ...vs.map(([f, v]) => `- ${pacLabel(f)}: ${pacTxt(f, v)}`)));
   if (tPac.length) tPac.unshift("", "===== PACIENTE Y TRATAMIENTO =====");
   const dPac = serPac(); if (dPac) tPac.push("", dPac);
   const XL = excelLine(C), wk = S.patient.week;
@@ -2027,6 +2032,8 @@ function serMet() {
 // Paciente y tratamiento: «a=» antecedentes y «v=» visita, con cada valor codificado (puede ser texto libre)
 function serPac() {
   const seg = [];
+  // fecha y momento de la visita (el PDF no lleva la cabecera del texto)
+  if (S.patient.date || S.patient.week != null) seg.push(`vis=${S.patient.date || ""},${S.patient.week ?? ""}`);
   [["hist", "a"], ["visit", "v"]].forEach(([sc, tag]) => {
     const o = S[sc] || {}, parts = Object.keys(PAC_F[sc]).filter(k => nz(o[k])).map(k => `${k}:${encodeURIComponent(Array.isArray(o[k]) ? o[k].join("; ") : o[k])}`);
     if (parts.length) seg.push(`${tag}=${parts.join(",")}`);
@@ -2044,10 +2051,11 @@ function applyPac(st, sc, v) {
     else if (x) st[sc][k] = x.slice(0, 500);
   });
 }
-// Línea para el Excel: «columna=valor» con los nombres de la fila 3 y los valores de sus desplegables
+// Línea para el Excel: «columna=valor» con los nombres de la fila 3 y los valores de sus desplegables.
+// v2: cada valor va codificado (sin espacios), para que la línea se pueda partir en varias, como al copiar de un PDF
 function excelLine(C) {
   const R = C.m, M = S.metab, H = S.habits, I = S.infect, w = S.patient.week, out = [];
-  const add = (k, v) => { if (v == null || v === "" || (typeof v === "number" && !isFinite(v))) return; out.push(`${k}=${typeof v === "number" ? Math.round(v * 1000) / 1000 : v}`); };
+  const add = (k, v) => { if (v == null || v === "" || (typeof v === "number" && !isFinite(v))) return; out.push(`${k}=${encodeURIComponent(typeof v === "number" ? Math.round(v * 1000) / 1000 : v)}`); };
   const sn = b => b ? "Sí" : "No", yn = v => v == null ? null : +v ? "Sí" : "No", r1 = v => Math.round(v * 10) / 10;
   add("sem", w); add("fecha", S.patient.date);
   if (serPso()) {
@@ -2085,7 +2093,7 @@ function excelLine(C) {
   INFECT.forEach(([k]) => { if (I[k] != null) basal.push([XL_INFECT[k], infTxt(k, I[k])]); });
   basal.forEach(([k, v]) => add((w === 0 ? "" : "b.") + k, v));
   const n = out.filter(x => !/^(sem|fecha)=/.test(x)).length;
-  return { line: w != null && n ? `EXCEL-APP v1|${out.join("|")}|FIN` : "", n, nBasal: w === 0 ? 0 : basal.length };
+  return { line: w != null && n ? `EXCEL-APP v2|${out.join("|")}|FIN` : "", n, nBasal: w === 0 ? 0 : basal.length };
 }
 const inRange = (x, lo, hi) => { const n = parseFloat(x); return isFinite(n) && n >= lo && n <= hi ? n : null; };
 function applyDataLine(st, line) {
@@ -2096,6 +2104,7 @@ function applyDataLine(st, line) {
     const eq = seg.indexOf("="); if (eq < 0) return;
     const k = seg.slice(0, eq), v = seg.slice(eq + 1), parts = v.split(",");
     if (k === "a" || k === "v") { applyPac(st, k === "a" ? "hist" : "visit", v); pac = true; return; }
+    if (k === "vis") { if (/^\d{4}-\d{2}-\d{2}$/.test(parts[0])) st.patient.date = parts[0]; if (WEEKS.some(x => x[0] === parts[1])) st.patient.week = +parts[1]; return; }
     if (k === "h" || k === "m" || k === "i") met = true; else pso = true;
     if (k === "b") BSA_REGIONS.forEach((r, i) => { st.bsa[r.k] = inRange(parts[i], 0, r.max) ?? 0; });
     else if (k === "p") v.split(";").forEach((t, i) => { if (PASI_REGIONS[i]) eid(st.pasi[PASI_REGIONS[i].k], t); });
@@ -2271,6 +2280,9 @@ function buildPrint() {
     <div>AAD-NPF<b>Psoriasis ${aad.toLowerCase()}</b>${aadWhy.join("; ") || "—"}</div>
     <div>International Psoriasis Council<b>${ipc.length ? "Candidato a tratamiento sistémico" : "Candidato a tratamiento tópico"}</b>${ipc.join("; ") || "Ningún criterio de sistémico"}</div></div>`);
 
+  // Paciente y tratamiento: antecedentes, tratamiento en la visita y eventos
+  pacReport().forEach(([s, vs]) => { h += sec(s[1], tbl(["Dato", "Valor"], vs.map(([f, v]) => [esc(pacLabel(f)), esc(pacTxt(f, v))]))); });
+
   h += sec("Puntuaciones", tbl(["Escala", "Valor", "Interpretación"], rows.filter(r => r[0] !== "g").map(r => [r[0], r[1], r[2]])));
 
   if (C.bsa > 0) h += sec("BSA por región (regla de la palma)", tbl(["Región", "Palmas (%)", "% de la región"], BSA_REGIONS.filter(r => +S.bsa[r.k] > 0).map(r => [r.n, fmt(+S.bsa[r.k]), fmt(+S.bsa[r.k] / r.max * 100, 0) + " %"]).concat([["<b>Total</b>", "<b>" + fmt(C.bsa) + " %</b>", ""]])));
@@ -2308,6 +2320,9 @@ function buildPrint() {
 
   h += `<div class="pr-sign"><div>Facultativo/a</div><div>Firma</div></div>`;
   h += `<p class="pr-foot">Escalas: PASI y BSA (AEDV 2016), PGA (${S.pga.ver === "iga5" ? "IGA 0–4, Langley 2015" : S.pga.ver === "pga7" ? "estático 0–6, AEDV" : "dinámico"}), DLQI (© Finlay y Khan, Cardiff University), NAPSI (Rich y Scher 2003), PURE-4 (Audureau 2018; Belinchón 2020). Clasificación: Daudén et al. JEADV 2016; Menter et al. JAAD 2019; Strober et al. JAAD 2020. Las imágenes son ilustraciones esquemáticas orientativas.</p><p class="pr-foot">${SRC_PSO}</p><p class="pr-foot">${SRC_MET}</p>`;
+  // Datos completos de la visita: copiando el texto del PDF se recarga en la app o se importa en el Excel
+  const data = [serPac(), serPso(), serMet(), $("#xlText").value].filter(Boolean);
+  if (data.length) h += `<section class="pr-data"><b>Datos de la visita para la app y el Excel.</b> Copia todo el texto de este PDF (Ctrl+A, Ctrl+C) y pulsa «Importar de la app» en el Excel, o pégalo en «Cargar el informe de una visita previa» de la app.<pre>${data.map(esc).join("\n")}</pre></section>`;
   $("#printReport").innerHTML = h;
 }
 let framed = true; try { framed = window.self !== window.top; } catch (_) { framed = true; }
